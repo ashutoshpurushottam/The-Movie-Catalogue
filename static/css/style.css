@@ -1,0 +1,109 @@
+/* Custom styling for the catalogue */
+body {
+    font-family: "Source Sans Pro", sans-serif;
+    font-size: 1.2rem;
+    color: #330000;
+}
+
+a.back-to-top {
+	display: none;
+	width: 60px;
+	height: 60px;
+	text-indent: -9999px;
+	position: fixed;
+	z-index: 999;
+	right: 20px;
+	bottom: 20px;
+	background: #990066 url("../img/up-arrow.png") no-repeat center 43%;
+	-webkit-border-radius: 30px;
+	-moz-border-radius: 30px;
+	border-radius: 30px;
+}
+
+
+.brand-logo-text {
+	font-size: 1.4 rem;
+	font-family: 'Courgette', cursive;
+	text-align: center;	
+}
+
+.welcome-text {
+	font-size: 1.6rem;
+}
+
+.main-page-title {
+	font-size: 2.2rem;
+	color: #330000;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	color: #330000;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.page-link {
+	color: #660066;
+}
+
+/* styles for '...' */
+
+.block-with-text {
+    /* hide text if it more than N lines  */
+    
+    overflow: hidden;
+    /* for set '...' in absolute position */
+    
+    position: relative;
+    /* use this value to count block height */
+    
+    line-height: 1.2em;
+    /* max-height = line-height (1.2) * lines max number (3) */
+    
+    max-height: 6.0em;
+    /* fix problem when last visible word doesn't adjoin right side  */
+    
+    text-align: left;
+    /* place for '...' */
+    
+    margin-right: 1em;
+    padding-right: 1em;
+}
+/* create the ... */
+
+.block-with-text:before {
+    /* points in the end */
+    
+    content: '...';
+    /* absolute position */
+    
+    position: absolute;
+    /* set position to left bottom corner of block */
+    
+    right: 0;
+    bottom: 0;
+}
+/* hide ... if we have text, which is less than or equal to max lines */
+
+.block-with-text:after {
+    /* points in the end */
+    
+    content: '';
+    /* absolute position */
+    
+    position: absolute;
+    /* set position to right bottom corner of text */
+    
+    left: 0;
+    /* set width and height */
+    
+    width: 1em;
+    height: 1em;
+    margin-top: 1em;
+    /* bg color = bg color under block */
+    
+    background: white;
+}

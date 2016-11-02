@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--Import Google Icon Font-->
+    <link href='https://fonts.googleapis.com/css?family=Courgette' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet">
+	<!-- Import font awesome -->
+	<script src="https://use.fontawesome.com/4bbbbbf1a5.js"></script>
+	<!-- Materialize CSS -->
+    <link rel="stylesheet" href="/static/css/materialize.min.css">
+    <link rel="stylesheet" href="/static/css/style.css"> 
+	{% block othermeta %} 
+	{% endblock %}
+    <title>The Movie Catalgoue</title>
+</head>
+<body>
+    <header>
+        <nav class="purple darken-3" role="navigation">
+            <div class="nav-wrapper container">
+                <a href="#" class="brand-logo brand-logo-text hide-on-med-and-down">
+                    The Movie Catalogue<i class="fa fa-video-camera" aria-hidden="true"></i>
+               </a>
+                <ul class="right valign-wrapper">
+                    {% if user %}
+                    <li><a href="/">Home &nbsp;<i class="fa fa-home" aria-hidden="true"></i></a>
+                    </li>
+                    <li><a href="/logout">Logout &nbsp;<i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                    </li>
+					<li>
+						<a href="#!">
+							 <img src="{{user.picture}}" alt="" class="circle responsive-img valign" width="36">
+						</a>
+					</li>
+                    {% else %}
+                    <li><a href="/">Home &nbsp;<i class="fa fa-home" aria-hidden="true"></i></a>
+                    </li>
+                    <li><a href="/login">Login &nbsp;<i class="fa fa-sign-in" aria-hidden="true"></i></a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </header>
+	<main>
+		<div class="container" id="top">
+			<div class="row">
+				<div class="col s12">
+					{% block content %}
+					{% endblock %}
+				</div>
+				<div class="col s12">
+					<a href="#" class="back-to-top"></a>
+				</div>
+			</div>
+		</div>
+	</main>
+	<!-- jQuery is required by Materialize to function -->
+	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script src="/static/js/materialize.min.js"></script>
+	<script src="/static/js/init.js"></script>
+</body>
