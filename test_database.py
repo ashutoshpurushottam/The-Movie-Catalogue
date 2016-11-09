@@ -32,6 +32,6 @@ def query_all_movies():
         print("%s trailer:%s  genre:%s user_id:%s" %(movie.name, movie.trailer_url, movie.genre, movie.user_id))
         print("-------------------------------------------------")
 
-#query_all_movies()
+query_all_movies()
 #query_all_genres()
-query_all_users()
+# query_all_users()

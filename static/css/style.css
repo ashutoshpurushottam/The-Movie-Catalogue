@@ -5,6 +5,7 @@ body {
     color: #330000;
 }
 
+
 a.back-to-top {
 	display: none;
 	width: 60px;
@@ -37,7 +38,7 @@ a.back-to-top {
 }
 
 .page-title {
-	font-size: 2.5rem;
+	font-size: 2.0rem;
 	color: #330000;
 }
 
@@ -48,6 +49,7 @@ a.back-to-top {
 .page-link {
 	color: #660066;
 }
+
 
 /* styles for '...' */
 

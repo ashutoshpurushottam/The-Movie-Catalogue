@@ -2,33 +2,36 @@
 {% block content %}
 <div class="row">
 	<br><br>
-    <div class="col s10 offset-s1 card-panel">
+    <div class="col s9 card-panel">
         <div class="col s12">
             <h2 class="page-title form-header center-align">Create Genre</h2>
             <form method="post">
                 <div class="row">
                     <div class="input-field col s12">
                         <input name="name" id="name" type="text" required>
-                        <label for="subject" class="title">Enter Name</label>
+                        <label for="subject" class="title">Enter Genre Name</label>
                     </div>
 					<div class="input-field col s12">
-						<textarea id="description" name="description" class="materialize-textarea" required></textarea>
-                        <label for="description" class="title" required>Enter Description</label>
-					</div>
-					<div class="input-field col s12">
 						<input id="poster_url" name="poster_url" type="text" required>
-                        <label for="poster_url" class="title">Enter Poster URL</label>
+                        <label for="poster_url" class="title">Enter Poster URL(Consider using 600X900 from TMDB website)</label>
 					</div>
+                    <div class="input-field col s12">
+                        <textarea id="description" name="description" class="materialize-textarea" required></textarea>
+                        <label for="description" class="title" required>Enter Genre Description</label>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col s12 right-align">
                         <button class="btn waves-effect waves-light indigo darken-4" type="submit" name="action">Submit&nbsp;
-                            <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                            <i class="fa fa-caret-right" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
             </form>
         </div>
+    </div>
+    <div class="col s3" id="image-div" hidden="hidden">
+        <p>Preview:</p><img id="preview-image" width="100%">
     </div>
 </div>
 {% endblock %}

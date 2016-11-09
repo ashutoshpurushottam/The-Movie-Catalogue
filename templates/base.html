@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--Import Google Icon Font-->
     <link href='https://fonts.googleapis.com/css?family=Courgette' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
@@ -18,9 +19,9 @@
     <header>
         <nav class="purple darken-3" role="navigation">
             <div class="nav-wrapper container">
-                <a href="#" class="brand-logo brand-logo-text hide-on-med-and-down">
+                <span href="#" class="brand-logo brand-logo-text hide-on-med-and-down">
                     The Movie Catalogue<i class="fa fa-video-camera" aria-hidden="true"></i>
-               </a>
+               </span>
                 <ul class="right valign-wrapper">
                     {% if user %}
                     <li><a href="/">Home &nbsp;<i class="fa fa-home" aria-hidden="true"></i></a>
@@ -43,20 +44,29 @@
         </nav>
     </header>
 	<main>
+        <!-- Load the script so that materialize work for the toast dialogs -->
+        <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+        <script src="/static/js/materialize.min.js"></script>
+
+        <div id="messageBox">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <!-- Show flash message as a toast for 4 seconds -->
+                    <script>Materialize.toast("{{messages[0]}}", 4000, 'rounded');</script>
+                {% endif %}
+            {% endwith %}
+        </div>
 		<div class="container" id="top">
-			<div class="row">
-				<div class="col s12">
-					{% block content %}
-					{% endblock %}
-				</div>
-				<div class="col s12">
-					<a href="#" class="back-to-top"></a>
-				</div>
+			<div class="col s12">
+				{% block content %}
+				{% endblock %}
 			</div>
+			<div class="col s12">
+				<a href="#" class="back-to-top"></a>
+			</div>
+			
 		</div>
 	</main>
-	<!-- jQuery is required by Materialize to function -->
-	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-	<script src="/static/js/materialize.min.js"></script>
-	<script src="/static/js/init.js"></script>
+    <!-- Load custom script -->
+    <script src="/static/js/init.js"></script>
 </body>

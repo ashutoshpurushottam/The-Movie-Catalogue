@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
+
+	<!-- Title of page -->
 	<div class = "row cd-container">
 		<div class= "col s8 offset-s2">
 			<br><br>
@@ -23,7 +25,7 @@
 			{% endif %}
 		</div>
 	</div>
-
+	<!-- Show genre cards from database -->
 	<div class = "row">
 		{% for genre in genres %}
 			<div class="col s12 m4">
@@ -35,11 +37,11 @@
 					</div>
 					{% else %}
 					<div class="card-image">
+						<!-- Show kitty placeholder image if there is no poster url -->
 						<img class="responsive-img modal-trigger" src="http://placekitten.com/400/600" 
 						alt="{{genre.name}}" title="{{genre.description}} representative image">
 					</div>
 					{% endif %}
-
 					<div class="card-content center-align capitalize">
 						<p>{{genre.name}}</p>
 					</div>
@@ -51,5 +53,6 @@
 				</div>
 			</div>
 		{% endfor %}
+
 	</div>
 {% endblock%}

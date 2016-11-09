@@ -4,6 +4,9 @@ import random, string
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask import session as login_session
 
+from functools import wraps, update_wrapper
+from datetime import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from  sqlalchemy.sql.expression import func
@@ -29,9 +32,22 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+def nocache(view):
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Last-Modified'] = datetime.now()
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+        
+    return update_wrapper(no_cache, view)
+
 # home page
 @app.route('/')
 @app.route('/genres/')
+@nocache
 def show_genres():
     """Show all genres"""
     # return genres in a random order
@@ -39,6 +55,7 @@ def show_genres():
     user = None
     # pick user from email in login session
     if 'email' in login_session:
+        print "email in home:", login_session['email']
         user = get_user(login_session['email'])
     return render_template('genres.html', genres=genres, user=user)
 
@@ -74,53 +91,69 @@ def create_new_genre(user_id):
             user_id=user_id)
             session.add(new_genre)
             session.commit()
+            flash("A new genre %s created." %new_genre.name)
             return redirect('/')
         else:
             return render_template('create_genre.html', user=user)
 
 # edit genre page
-@app.route('/genre/<int:genre_id>/<int:user_id>/edit/')
+@app.route('/genre/<int:genre_id>/<int:user_id>/edit/', methods=['GET', 'POST'])
 def edit_genre(genre_id, user_id):
-    # retrieve genre and user
-    user = session.query(User).filter_by(id = user_id).one()
-    genre = session.query(Genre).filter_by(id = genre_id).one()
-    if user.id == genre.user_id:
-        return render_template("edit_genre.html", user=user, genre=genre)
-    else:
+    # protect page from unauthorized access
+    if 'username' not in login_session:
         return redirect('/')
+    # retrieve genre and user
+    else:
+        user = session.query(User).filter_by(id = user_id).one()
+        genre = session.query(Genre).filter_by(id = genre_id).one()
 
-@app.route('/genre/<int:genre_id>/<int:user_id>/delete/')
+        if user and user.id == genre.user_id:
+            if request.method == 'POST':
+                genre.name = request.form["name"]
+                genre.poster_url = request.form["poster_url"]
+                genre.description = request.form["description"]
+                session.add(genre)
+                session.commit()
+                flash("The genre %s is edited" %genre.name)
+                return redirect('/')
+            else:
+                return render_template("edit_genre.html", user=user, genre=genre)
+
+        else:
+            return redirect('/')
+
+@app.route('/genre/<int:genre_id>/<int:user_id>/delete/', methods=['GET', 'POST'])
 def delete_genre(genre_id, user_id):
-    # TODO: retrieve genre and user
-    return render_template("edit_genre.html")
+    # protect page from unauthorized access
+    if 'username' not in login_session:
+        return redirect('/')
+    # retrieve genre and user
+    else:
+        user = session.query(User).filter_by(id = user_id).one()
+        genre = session.query(Genre).filter_by(id = genre_id).one()
+
+        if user and user.id == genre.user_id:
+            if request.method == 'POST':
+                session.delete(genre)
+                session.commit()
+                flash("The genre %s is deleted" %genre.name)
+                return redirect('/')
+            else:
+                return render_template("delete_genre.html", user=user, genre=genre)
+
+        else:
+            return redirect('/')
 
 
-# delete genre page
-# @app.route('/genre/<int:genre_id>/delete/')
-# def delete_genre():
-#     return render_template("edit_genre.html")
+@app.route('/genre/<int:genre_id>/<int:movie_id>/')
+def show_movie_details(genre_id, movie_id):
+    movie = session.query(Movie).filter_by(id=movie_id).one()
+    lst = movie.trailer_url.split("?v=")
+    youtube_url = "https://www.youtube.com/embed/" + lst[1]
 
-    
-# # edit genre page
-# @app.route('/genre/<int:genre_id>/<int:user_id>/edit', methods=['GET', 'POST'])
-# def edit_genre(genre_id, user_id):
-#     if 'username' not in login_session:
-#         return redirect('/')
-#     else:
-#         genre = session.query(Genre).filter_by(id=genre_id).one()
-#         # check if the user is the one who created this genre
-#         if genre.user_id == user_id:
-#             if request.method == 'POST':
-#                 if request.form["name"]:
-#                     genre.name = request.form["name"]
-#                     genre.description = request.form["description"]
-#                     genre.poster_url = request.form["poster_url"]
-#                     session.add(genre)
-#                     session.commit()
-#                 return redirect('/genre/' + str(user_id))
-#             else:
-#                 return render_template('edit_genre.html', genre=genre)
-        
+    return render_template("movie_details.html", movie=movie, url = youtube_url)
+
+
 # login page
 @app.route('/login/')
 def show_login():
@@ -199,6 +232,8 @@ def gconnect():
 
     data = answer.json()
 
+    print("user data:", data)
+
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
@@ -206,9 +241,9 @@ def gconnect():
     
     # see if user exists or not, if not create a new one
     user = get_user(login_session['email'])
-    # user_id = get_user_id(login_session['email'])
     if not user:
-        create_user(login_session)
+        user_id = create_user(login_session)
+        user = get_user_from_id(user_id)
     login_session['user_id'] = user.id
 
     output = ''
@@ -218,7 +253,7 @@ def gconnect():
     output += '<img src="'
     output += login_session['picture']
     output += ' " style = "width: 200px; height: 200px;border-radius: 100px;-webkit-border-radius: 100px;-moz-border-radius: 100px;"> '
-    flash("you are now logged in as %s" % login_session['username'])
+    flash("You are now logged in as %s" % login_session['username'])
     print "done!"
     return output
 
@@ -331,6 +366,8 @@ def fbconnect():
     output += '-webkit-border-radius: 100px;'
     output += '-moz-border-radius: 100px;"> '
     print "done!"
+    print "email in fb:", login_session['email']
+    flash("You are now logged in as %s" % login_session['username'])
     return output
 
 def fbdisconnect():
@@ -366,22 +403,42 @@ def disconnect():
 
 
 def create_user(login_session):
+    """
+    Creates a new user and save in db.
+    Returns its id. 
+    """
     new_user = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
     session.add(new_user)
     session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id    
+    return new_user.id    
 
 
 def get_user(email):
+    """
+    Gets user by its email. If the email does not match 
+    returns None.
+    """
     try:
         user = session.query(User).filter_by(email=email).one()
         return user
     except:
         return None
 
+def get_user_from_id(id):
+    """
+    Gets user from id. In case of no match returns None.
+    """
+    try:
+        user = session.query(User).filter_by(id = id).one()
+        return user
+    except:
+        return None
+
 def get_user_id(genre):
+    """
+    Gets user associated with the genre and returns its id
+    """
     try:
         genre = session.query(Genre).filter_by(id=genre_id).one()
         return genre.user_id
@@ -389,15 +446,14 @@ def get_user_id(genre):
         return None
 
 def get_user_id(email):
+    """
+    Gets user id associated with the input email
+    """
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
     except:
         return None
-
-
-
-
 
 
 
