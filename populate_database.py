@@ -13,7 +13,7 @@ LOGIN_METHOD = "authentication/token/validate_with_login"
 GET_SESSION_ID_METHOD = "authentication/session/new"
 GET_ACCOUNT_INFO_METHOD = "account"
 # URLs for trailer and posters for movie objects
-YOUTUBE_BASE_URL = 'https://www.youtube.com/watch?v='
+YOUTUBE_BASE_URL = 'https://youtu.be/'
 TMDB_POSTER_BASE_URL = 'http://image.tmdb.org/t/p/w500/'
 from secret import username as USERNAME
 from secret import password as PASSWORD
@@ -174,6 +174,7 @@ for id in get_favorite_movies_id():
     if movie_videos['results'] and len(movie_videos['results']) > 0:
         trailer_video = movie_videos['results'][0]
         movie_trailer_url = YOUTUBE_BASE_URL + trailer_video['key']
+        print("Movie trailer:", movie_trailer_url)
     # get title, overview, poster
     movie_info = tmdb.Movies(id).info()
     movie_title = movie_info['title']

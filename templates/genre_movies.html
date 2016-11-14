@@ -41,7 +41,7 @@
 						<p class="block-with-text">{{movie.storyline}}</p>
 					</div>
 					<div class="card-action center-align">
-						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}"><span class="page-link">See Details</span></a>
+						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}"><span class="page-link">{{movie.name}}</span></a>
 					</div>
 				</div>
 			</div>

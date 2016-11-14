@@ -50,7 +50,7 @@ def nocache(view):
 @app.route('/genres/')
 @nocache
 def show_genres():
-    """Show all genres"""
+    """Show all genres and lists"""
     # genres in a random order
     genres = session.query(Genre).order_by(func.random()).all()
     user = None
@@ -92,7 +92,7 @@ def create_new_genre(user_id):
             user_id=user_id)
             session.add(new_genre)
             session.commit()
-            flash("A new genre %s created." %new_genre.name)
+            flash("A new list %s is created." %new_genre.name)
             return redirect('/')
         else:
             return render_template('create_genre.html', user=user)
