@@ -1,0 +1,5 @@
+Client id : 696582959003-a9f3k4hpimfl54sqhceg3ub8idcmk6e0.apps.googleusercontent.com
+Client secret: kOOaF-4C30S2J_UOkonmKZfo
+
+
+https://discussions.udacity.com/t/attribute-error-str-object-has-no-attribute-access-token/40449/30

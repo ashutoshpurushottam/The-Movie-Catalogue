@@ -5,21 +5,32 @@
 			<h1 class="center-align"><span class="capitalize page-title">{{genre.name}} Movies</span></h1>
 		</div>
 		<div class="col s12 right-align">
+			<!-- If user id matches with genre creator id show Edit and Genre -->
 			{% if user and user.id == genre.user_id %}
 			<a href="{{url_for('edit_genre', genre_id=genre.id, user_id=user.id)}}">
-		    <button class="btn waves-effect waves-light indigo darken-4" type="submit" name="action">Edit Genre&nbsp;
+		    <button class="btn waves-effect waves-light indigo darken-4 capitalize" type="submit" name="action">Edit {{genre.name}}&nbsp;
 				<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			</button>
 			</a>
 			<a href="{{url_for('delete_genre', genre_id=genre.id, user_id=user.id)}}">
-		    <button class="btn waves-effect waves-light red darken-4" type="submit" name="action">Delete Genre&nbsp;
+		    <button class="btn waves-effect waves-light red darken-4 capitalize" type="submit" name="action">Delete {{genre.name}}&nbsp;
 				<i class="fa fa-trash-o" aria-hidden="true"></i>
 			</button>
 			</a>
+			<a href="{{url_for('create_movie', genre_id=genre.id, user_id=user.id)}}">
+		    <button class="btn waves-effect waves-light green darken-1 capitalize" type="submit" name="action">Add Movie&nbsp;
+				<i class="fa fa-plus" aria-hidden="true"></i>
+			</button>
+			</a>
+
 			{% endif %}
 		</div>
 	</div>
 	<div class = "row">
+		<!-- Show all movies belonging to genre -->
+		{% if movies|length == 0 %}
+			<p class="center-align">No movie has been added for this genre so far.</p>
+		{% endif %}
 		{% for movie in movies %}
 			<div class="col s12 m4">
 				<div class="card">

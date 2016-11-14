@@ -1,8 +1,9 @@
 import sys
-import random, string
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask import session as login_session
+import random, string
+
 
 from functools import wraps, update_wrapper
 from datetime import datetime
@@ -50,10 +51,10 @@ def nocache(view):
 @nocache
 def show_genres():
     """Show all genres"""
-    # return genres in a random order
+    # genres in a random order
     genres = session.query(Genre).order_by(func.random()).all()
     user = None
-    # pick user from email in login session
+    # retrieve user from email in login session
     if 'email' in login_session:
         print "email in home:", login_session['email']
         user = get_user(login_session['email'])
@@ -140,7 +141,37 @@ def delete_genre(genre_id, user_id):
                 return redirect('/')
             else:
                 return render_template("delete_genre.html", user=user, genre=genre)
+            return redirect('/')
 
+        else:
+            return redirect('/')
+
+
+# add a movie page
+@app.route('/genre/<int:genre_id>/<int:user_id>/new/', methods=['GET', 'POST'])
+def create_movie(genre_id, user_id):
+    # protect page from unauthorized access
+    if 'username' not in login_session:
+        return redirect('/')
+    # retrieve genre and user
+    else:
+        user = session.query(User).filter_by(id = user_id).one()
+        genre = session.query(Genre).filter_by(id = genre_id).one()
+        if user and user.id == genre.user_id:
+            if request.method == 'POST':
+                new_movie = Movie(name=request.form["name"],
+                    storyline=request.form["storyline"],
+                    poster_url=request.form["poster_url"],
+                    trailer_url = request.form["trailer_url"],
+                    user_id=user_id,
+                    genre_id=genre_id)
+
+                session.add(new_movie)
+                session.commit()
+                flash("A new movie %s created." %new_movie.name)
+                return redirect('/')
+            else:
+                return render_template("create_movie.html", user=user, genre=genre)
         else:
             return redirect('/')
 
@@ -148,8 +179,11 @@ def delete_genre(genre_id, user_id):
 @app.route('/genre/<int:genre_id>/<int:movie_id>/')
 def show_movie_details(genre_id, movie_id):
     movie = session.query(Movie).filter_by(id=movie_id).one()
-    lst = movie.trailer_url.split("?v=")
-    youtube_url = "https://www.youtube.com/embed/" + lst[1]
+    try:
+        append = movie.trailer_url.split(".be/")[1]
+        youtube_url = "https://www.youtube.com/embed/" + append
+    except:
+        print("url can not be loaded")
 
     return render_template("movie_details.html", movie=movie, url = youtube_url)
 
@@ -185,8 +219,8 @@ def gconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-    # Check that the access token is valid.
     access_token = credentials.access_token
+    
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
     h = httplib2.Http()
@@ -261,6 +295,7 @@ def gconnect():
 def gdisconnect():
         # Only disconnect a connected user.
     credentials = login_session.get('credentials')
+    print("Credentials in disconnect:", credentials)
     if credentials is None:
         response = make_response(
             json.dumps('Current user not connected.'), 401)

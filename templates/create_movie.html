@@ -4,20 +4,24 @@
 	<br><br>
     <div class="col s9 card-panel">
         <div class="col s12">
-            <h2 class="page-title form-header center-align">Create List</h2>
+            <h2 class="page-title form-header center-align">Add Movie</h2>
             <form method="post">
                 <div class="row">
                     <div class="input-field col s12">
                         <input name="name" id="name" type="text" required>
-                        <label for="subject" class="title">Enter List Name</label>
+                        <label for="subject" class="title">Enter Movie Name</label>
                     </div>
 					<div class="input-field col s12">
 						<input id="poster_url" name="poster_url" type="text" required>
                         <label for="poster_url" class="title">Enter Poster URL(Please use 600X900 from TMDB website)</label>
 					</div>
                     <div class="input-field col s12">
-                        <textarea id="description" name="description" class="materialize-textarea" required></textarea>
-                        <label for="description" class="title" required>Enter List Description</label>
+                        <textarea id="storyline" name="storyline" class="materialize-textarea" required></textarea>
+                        <label for="storyline" class="title" required>Enter storyline</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input id="trailer_url" name="trailer_url" type="text" required>
+                        <label for="trailer_url" class="title">Enter Traler URL(Please use trailer TMDB website)</label>
                     </div>
                 </div>
                 <div class="row">

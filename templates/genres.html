@@ -7,7 +7,7 @@
 			<br><br>
 			<div class = "center-align welcome-text"><i class="fa fa-quote-left" aria-hidden="true"></i>
 				Welcome to the movie catalogue.
-				Login and add your own genres and movies to the catalogue.
+				Login and add your own genres or movies lists to the catalogue.
 				<i class="fa fa-quote-right" aria-hidden="true"></i>
 			</div>
 		</div>
@@ -15,17 +15,17 @@
 	<!-- Show new genre option is user is registered -->
 	<div class="row">
 		<div class="col s12 center-align">
-			<h1 class="main-page-title">Genres</h1>
+			<h1 class="main-page-title">Movie Lists</h1>
 			{% if user %}
 				<a href="{{url_for('create_new_genre', user_id=user.id)}}">
 				<button class="btn waves-effect waves-light indigo darken-4" type="submit" name="action">
-				New Genre&nbsp; <i class="fa fa-plus" aria-hidden="true"></i>
+				New List&nbsp; <i class="fa fa-plus" aria-hidden="true"></i>
 				</button>
 				</a>
 			{% endif %}
 		</div>
 	</div>
-	<!-- Show genre cards from database -->
+	<!-- Show genre cards for genres -->
 	<div class = "row">
 		{% for genre in genres %}
 			<div class="col s12 m4">
