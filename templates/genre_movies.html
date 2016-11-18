@@ -4,21 +4,21 @@
 		<div class="col s12">
 			<h1 class="center-align"><span class="capitalize page-title">{{genre.name}} Movies</span></h1>
 		</div>
-		<div class="col s12 right-align">
+		<div class="col s12 center-align">
 			<!-- If user id matches with genre creator id show Edit and Genre -->
 			{% if user and user.id == genre.user_id %}
 			<a href="{{url_for('edit_genre', genre_id=genre.id, user_id=user.id)}}">
-		    <button class="btn waves-effect waves-light indigo darken-4 capitalize" type="submit" name="action">Edit {{genre.name}}&nbsp;
+		    <button class="btn waves-effect waves-light indigo darken-4 capitalize" type="submit" name="action">Edit&nbsp;
 				<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			</button>
 			</a>
 			<a href="{{url_for('delete_genre', genre_id=genre.id, user_id=user.id)}}">
-		    <button class="btn waves-effect waves-light red darken-4 capitalize" type="submit" name="action">Delete {{genre.name}}&nbsp;
+		    <button class="btn waves-effect waves-light red darken-4 capitalize" type="submit" name="action">Delete&nbsp;
 				<i class="fa fa-trash-o" aria-hidden="true"></i>
 			</button>
 			</a>
 			<a href="{{url_for('create_movie', genre_id=genre.id, user_id=user.id)}}">
-		    <button class="btn waves-effect waves-light green darken-1 capitalize" type="submit" name="action">Add Movie&nbsp;
+		    <button class="btn waves-effect waves-light green darken-1 capitalize" type="submit" name="action">Add&nbsp;
 				<i class="fa fa-plus" aria-hidden="true"></i>
 			</button>
 			</a>
@@ -29,19 +29,19 @@
 	<div class = "row">
 		<!-- Show all movies belonging to genre -->
 		{% if movies|length == 0 %}
-			<p class="center-align">No movie has been added for this genre so far.</p>
+			<p class="center-align">There are no movie in this list. To add a new movie press "Add Movie" button.</p>
 		{% endif %}
 		{% for movie in movies %}
-			<div class="col s12 m4">
+			<div class="col s12 m3 l3">
 				<div class="card">
 					<div class="card-image">
-						<img src="{{movie.poster_url}}" class="responsive-img">
+						<img src="{{movie.poster_url}}" alt="{{movie.name}}" class="responsive-img">
 					</div>
 					<div class="card-content">
 						<p class="block-with-text">{{movie.storyline}}</p>
 					</div>
 					<div class="card-action center-align">
-						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}"><span class="page-link">{{movie.name}}</span></a>
+						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}"><span class="page-link movie-title">See Details</span></a>
 					</div>
 				</div>
 			</div>

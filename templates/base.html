@@ -30,7 +30,8 @@
                     </li>
 					<li>
 						<a href="#!">
-							 <img src="{{user.picture}}" alt="" class="circle responsive-img valign" width="36">
+							 <img src="{{user.picture}}" alt="" class="circle responsive-img valign hide-on-small-only"
+                             width="36">
 						</a>
 					</li>
                     {% else %}
@@ -47,6 +48,7 @@
         <!-- Load the script so that materialize work for the toast dialogs -->
         <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
         <script src="/static/js/materialize.min.js"></script>
+
 
         <div id="messageBox">
             {% with messages = get_flashed_messages() %}

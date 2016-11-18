@@ -5,6 +5,9 @@ body {
     color: #330000;
 }
 
+.card {
+    margin-bottom: 0.5em;
+}
 
 a.back-to-top {
 	display: none;
@@ -21,12 +24,16 @@ a.back-to-top {
 	border-radius: 30px;
 }
 
-
 .brand-logo-text {
-	font-size: 1.4 rem;
+	font-size: 1.2rem;
 	font-family: 'Courgette', cursive;
 	text-align: center;	
 }
+
+.row .col.m4 {
+    margin-bottom: 1em;
+}
+
 
 .welcome-text {
 	font-size: 1.6rem;
@@ -48,6 +55,10 @@ a.back-to-top {
 
 .page-link {
 	color: #660066;
+}
+
+.movie-title {
+    font-size: 1rem;
 }
 
 
@@ -109,3 +120,27 @@ a.back-to-top {
     
     background: white;
 }
+
+
+
+/*Small screen media query*/
+@media screen and (max-width: 600px) {
+    .welcome-text {
+        font-size: 1.2rem;
+    }
+
+    .main-page-title {
+        font-size: 1.2rem;
+    }
+
+    .page-title {
+        font-size: 1rem;
+    }
+
+    .video-trailer {
+        width: 480;
+        height: 320;
+    }
+}
+
+

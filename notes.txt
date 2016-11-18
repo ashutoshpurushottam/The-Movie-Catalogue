@@ -3,3 +3,5 @@ Client secret: kOOaF-4C30S2J_UOkonmKZfo
 
 
 https://discussions.udacity.com/t/attribute-error-str-object-has-no-attribute-access-token/40449/30
+
+def no_cache function taken from : https://arusahni.net/blog/2014/03/flask-nocache.html

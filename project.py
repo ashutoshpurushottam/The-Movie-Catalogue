@@ -1,25 +1,23 @@
 import sys
-
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask import session as login_session
+import httplib2
 import random, string
-
+import json
+import requests
 
 from functools import wraps, update_wrapper
 from datetime import datetime
+from database_setup import Genre, Base, Movie, User
+
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import session as login_session
+from flask import make_response
+from flask import abort
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from  sqlalchemy.sql.expression import func
-
-from database_setup import Genre, Base, Movie, User
-
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-import httplib2
-from flask import make_response
-import json
-import requests
 
 
 app = Flask(__name__)
@@ -36,6 +34,10 @@ session = DBSession()
 def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
+        """
+        prevents caching of client browser
+        decorator to be used where controlling flash messages is required 
+        """
         response = make_response(view(*args, **kwargs))
         response.headers['Last-Modified'] = datetime.now()
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
@@ -56,11 +58,10 @@ def show_genres():
     user = None
     # retrieve user from email in login session
     if 'email' in login_session:
-        print "email in home:", login_session['email']
         user = get_user(login_session['email'])
     return render_template('genres.html', genres=genres, user=user)
 
-# page for showing movies of a genre
+# page for showing movies of a genre or a list
 @app.route('/genre/<int:genre_id>/movies/')
 @app.route('/genre/<int:genre_id>/')
 def show_movies_genre(genre_id):
@@ -69,17 +70,20 @@ def show_movies_genre(genre_id):
     if 'email' in login_session:
         email = login_session['email']
         user = get_user(email)
+    # retrieve movies and genre 
     movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
     genre = session.query(Genre).filter_by(id = genre_id).one()
-    # see if the logged in user is the one who created this genre
     return render_template('genre_movies.html', movies = movies, genre = genre, user=user)
 
-# create new genre page
 @app.route('/genre/<int:user_id>/new/', methods=['GET', 'POST'])
 def create_new_genre(user_id):
+    """
+    create a new genre
+    """
     # protect page from unauthorized access
     if 'username' not in login_session:
-        return redirect('/')
+        # return unauthorized exception
+        abort(401)
     else:
         # pick user from email in login session
         if 'email' in login_session:
@@ -92,7 +96,7 @@ def create_new_genre(user_id):
             user_id=user_id)
             session.add(new_genre)
             session.commit()
-            flash("A new list %s is created." %new_genre.name)
+            flash("A new list %s is created by %s." %(new_genre.name, user.name))
             return redirect('/')
         else:
             return render_template('create_genre.html', user=user)
@@ -100,14 +104,17 @@ def create_new_genre(user_id):
 # edit genre page
 @app.route('/genre/<int:genre_id>/<int:user_id>/edit/', methods=['GET', 'POST'])
 def edit_genre(genre_id, user_id):
+    """
+    edit genre parameters
+    """
     # protect page from unauthorized access
     if 'username' not in login_session:
-        return redirect('/')
+        abort(401)
     # retrieve genre and user
     else:
         user = session.query(User).filter_by(id = user_id).one()
         genre = session.query(Genre).filter_by(id = genre_id).one()
-
+        # only genre creator can edit its description
         if user and user.id == genre.user_id:
             if request.method == 'POST':
                 genre.name = request.form["name"]
@@ -121,15 +128,20 @@ def edit_genre(genre_id, user_id):
                 return render_template("edit_genre.html", user=user, genre=genre)
 
         else:
-            return redirect('/')
+            # user is not matching with the genre creator
+            abort(401)
 
+# delete genre page
 @app.route('/genre/<int:genre_id>/<int:user_id>/delete/', methods=['GET', 'POST'])
 def delete_genre(genre_id, user_id):
+    """
+    delete genre
+    """
     # protect page from unauthorized access
     if 'username' not in login_session:
-        return redirect('/')
-    # retrieve genre and user
+        abort(401)
     else:
+        # retrieve genre and user
         user = session.query(User).filter_by(id = user_id).one()
         genre = session.query(Genre).filter_by(id = genre_id).one()
 
@@ -144,19 +156,24 @@ def delete_genre(genre_id, user_id):
             return redirect('/')
 
         else:
-            return redirect('/')
-
+            abort(401)
 
 # add a movie page
 @app.route('/genre/<int:genre_id>/<int:user_id>/new/', methods=['GET', 'POST'])
 def create_movie(genre_id, user_id):
+    """
+    create a new movie
+    """
     # protect page from unauthorized access
     if 'username' not in login_session:
-        return redirect('/')
-    # retrieve genre and user
+        abort(401)
     else:
-        user = session.query(User).filter_by(id = user_id).one()
+        # retrieve user from session
+        if 'email' in login_session:
+            user = get_user(login_session['email'])
+        # retrieve genre
         genre = session.query(Genre).filter_by(id = genre_id).one()
+        # accept post only if user is not None and user id matches with the genre
         if user and user.id == genre.user_id:
             if request.method == 'POST':
                 new_movie = Movie(name=request.form["name"],
@@ -165,27 +182,66 @@ def create_movie(genre_id, user_id):
                     trailer_url = request.form["trailer_url"],
                     user_id=user_id,
                     genre_id=genre_id)
-
                 session.add(new_movie)
                 session.commit()
                 flash("A new movie %s created." %new_movie.name)
-                return redirect('/')
+                # retrieve movies
+                movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
+                return render_template('genre_movies.html', movies=movies, genre=genre, user=user)
             else:
                 return render_template("create_movie.html", user=user, genre=genre)
         else:
-            return redirect('/')
+            abort(401)
 
-
+# show movie details
 @app.route('/genre/<int:genre_id>/<int:movie_id>/')
 def show_movie_details(genre_id, movie_id):
+    """
+    show movie details
+    """
     movie = session.query(Movie).filter_by(id=movie_id).one()
+    genre = session.query(Genre).filter_by(id=genre_id).one()
+    user_id = genre.user_id
+    user = session.query(User).filter_by(id=user_id).one()
+    youtube_url = ""
     try:
         append = movie.trailer_url.split(".be/")[1]
         youtube_url = "https://www.youtube.com/embed/" + append
+        return render_template("movie_details.html", movie=movie, url=youtube_url, user=user, genre_id=genre_id)
     except:
-        print("url can not be loaded")
+        print("No valid youtube URL")
+        return render_template("movie_details.html", movie=movie, url="", genre_id=genre_id, user=user)
 
-    return render_template("movie_details.html", movie=movie, url = youtube_url)
+
+# edit movie page (not completed)
+@app.route('/genre/<int:genre_id>/<int:user_id>/<int:movie_id>/edit', methods=['GET', 'POST'])
+def edit_movie(genre_id, user_id, movie_id):
+    """
+    edit movie info
+    """
+    # protect page from unauthorized access
+    if 'username' not in login_session:
+        return redirect('/')
+    else:
+        if 'email' in login_session:
+            user = get_user(login_session['email'])
+        movie = session.query(Movie).filter_by(id=movie_id).one()
+
+
+    return render_template("edit_movie.html", movie=movie, user=user, genre=genre)
+
+# delete movie page (not completed)
+@app.route('/genre/<int:genre_id>/<int:user_id>/<int:movie_id>/delete', methods=['GET', 'POST'])
+def delete_movie(genre_id, user_id, movie_id):
+    """
+    edit movie info
+    """
+    genre = session.query(Genre).filter_by(id=genre_id).one()
+    user = session.query(User).filter_by(id=user_id).one()
+    movie = session.query(Movie).filter_by(id=movie_id).one()
+
+    return render_template("delete_movie.html", movie=movie, user=user, genre=genre)
+
 
 
 # login page
@@ -200,6 +256,9 @@ def show_login():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """
+    Google connect
+    """
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -293,9 +352,11 @@ def gconnect():
 
 @app.route('/gdisconnect')
 def gdisconnect():
-        # Only disconnect a connected user.
+    """
+    Disconnect google
+    """
+    # Only disconnect a connected user.
     credentials = login_session.get('credentials')
-    print("Credentials in disconnect:", credentials)
     if credentials is None:
         response = make_response(
             json.dumps('Current user not connected.'), 401)
