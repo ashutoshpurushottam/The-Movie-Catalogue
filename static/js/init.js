@@ -34,8 +34,8 @@ $('#poster_url').focus(function() {
 
 });
 
-// $('.panel').masonry({
-//     itemSelector: '.col',
-//     columnWidth: 33.33%;
-// });
-
+$('.grid').masonry({
+  // options
+  itemSelector: '.panel',
+  columnWidth: 400
+});

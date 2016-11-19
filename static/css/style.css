@@ -5,6 +5,10 @@ body {
     color: #330000;
 }
 
+.grid-item { 
+    width: 33.333%; 
+}
+
 a.back-to-top {
 	display: none;
 	width: 60px;

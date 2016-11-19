@@ -34,9 +34,9 @@
 		{% if movies|length == 0 and user and user.id == genre.user_id %}
 			<p class="center-align">Press "Add" Button above to add a new movie.</p>
 		{% endif %}
+		<div class="grid">
 		{% for movie in movies %}
-			<div class="col s12 m3 l3">
-				<div class="card">
+			<div class="panel col m4 s12 card">
 					<div class="card-image">
 						<img src="{{movie.poster_url}}" alt="{{movie.name}}" class="responsive-img">
 					</div>
@@ -46,7 +46,7 @@
 					<div class="card-action center-align">
 						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}"><span class="page-link movie-title">See Details</span></a>
 					</div>
-				</div>
 			</div>
 		{% endfor %}
+		</div>
 {% endblock%}

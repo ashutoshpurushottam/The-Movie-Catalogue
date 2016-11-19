@@ -28,8 +28,8 @@
 	<!-- Show genre cards for genres -->
 	<div class = "row">
 		{% for genre in genres %}
-			<div class="col s12 m4">
-				<div class="card">
+			<div class="grid">
+				<div class="panel col m4 s12 card">
 					{% if genre.poster_url %}
 					<div class="card-image">
 						<img class="responsive-img modal-trigger" src="{{genre.poster_url}}" 
