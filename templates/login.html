@@ -4,6 +4,7 @@
 	<!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 	<script src="//apis.google.com/js/platform.js?onload=start"> </script>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 	<!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
 {% endblock %}
 
@@ -48,6 +49,16 @@ function signInCallback(authResult) {
     // Hide the sign-in button now that the user is authorized
     $('#signinButton').attr('style', 'display: none');
     // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
+    var csrftoken = $('meta[name=csrf-token]').attr('content');
+
+    $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+        }
+      }
+    });
+
     $.ajax({
       type: 'POST',
       url: '/gconnect?state={{STATE}}',
@@ -101,6 +112,18 @@ function signInCallback(authResult) {
       console.log('Welcome!  Fetching your information.... ');
       FB.api('/me', function(response) {
         console.log('Successful login for: ' + response.name);
+
+        var csrftoken = $('meta[name=csrf-token]').attr('content');
+
+        $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+          if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+          }
+        }
+      });
+
+
         $.ajax({
           type: 'POST',
           url: '/fbconnect?state={{STATE}}',

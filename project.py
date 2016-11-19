@@ -20,8 +20,17 @@ from sqlalchemy.sql.expression import func
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
+
+# Configuration for picture uploads
+UPLOAD_FOLDER = '/vagrant/the-movie-catalogue/static/img'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024 
+
+
 # app and extension
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = UPLOAD_FILESIZE_LIMIT
 csrf = SeaSurf(app)
 
 CLIENT_ID = json.loads(
@@ -58,9 +67,9 @@ def login_required(func):
     """
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        if 'username' not in session:
-            flash('Please log in to manage items.')
-            return redirect(url_for('/'))
+        if 'username' not in login_session:
+            flash('Please log in first to manage movies lists.')
+            return redirect('/')
         return func(*args, **kwargs)
     return decorated_function
 
@@ -95,124 +104,107 @@ def show_movies_genre(genre_id):
     return render_template('genre_movies.html', movies = movies, genre = genre, user=user)
 
 @app.route('/genre/<int:user_id>/new/', methods=['GET', 'POST'])
+@login_required
 def create_new_genre(user_id):
     """
     create a new genre
     """
-    # protect page from unauthorized access
-    if 'username' not in login_session:
-        # return unauthorized exception
-        abort(401)
-    else:
-        # pick user from email in login session
-        if 'email' in login_session:
-            user = get_user(login_session['email'])
-        
-        if request.method == 'POST':
-            new_genre = Genre(name=request.form["name"], 
-            description=request.form["description"], 
-            poster_url=request.form["poster_url"], 
+    user = None
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    if request.method == 'POST':
+        new_genre = Genre(name=request.form["name"], 
+            description=request.form["description"],
+            poster_url=request.form["poster_url"],
             user_id=user_id)
-            session.add(new_genre)
-            session.commit()
-            flash("A new list %s is created by %s." %(new_genre.name, user.name))
-            return redirect('/')
-        else:
-            return render_template('create_genre.html', user=user)
+        session.add(new_genre)
+        session.commit()
+        flash("A new list %s is created by %s." %(new_genre.name, user.name))
+        return redirect('/')
+    else:
+        return render_template('create_genre.html', user=user)
 
 # edit genre page
 @app.route('/genre/<int:genre_id>/<int:user_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def edit_genre(genre_id, user_id):
     """
     edit genre parameters
     """
-    # protect page from unauthorized access
-    if 'username' not in login_session:
-        abort(401)
-    # retrieve genre and user
-    else:
-        if 'email' in login_session:
-            user = get_user(login_session['email'])
-        genre = session.query(Genre).filter_by(id = genre_id).one()
-        # only genre creator can edit its description
-        if user and user.id == genre.user_id:
-            if request.method == 'POST':
-                genre.name = request.form["name"]
-                genre.poster_url = request.form["poster_url"]
-                genre.description = request.form["description"]
-                session.add(genre)
-                session.commit()
-                flash("The list %s has been edited" %genre.name)
-                return redirect('/')
-            else:
-                return render_template("edit_genre.html", user=user, genre=genre)
-
+    user = None
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    genre = session.query(Genre).filter_by(id = genre_id).one()
+    # only genre creator can edit its description
+    if user and user.id == genre.user_id:
+        if request.method == 'POST':
+            genre.name = request.form["name"]
+            genre.poster_url = request.form["poster_url"]
+            genre.description = request.form["description"]
+            session.add(genre)
+            session.commit()
+            flash("The list %s has been edited" %genre.name)
+            return redirect('/')
         else:
-            # user is not matching with the genre creator
-            abort(401)
+            return render_template("edit_genre.html", user=user, genre=genre)
+    else:
+        # user is not matching with the genre creator
+        abort(401)
 
 # delete genre page
 @app.route('/genre/<int:genre_id>/<int:user_id>/delete/', methods=['GET', 'POST'])
+@login_required
 def delete_genre(genre_id, user_id):
     """
     delete genre
     """
-    # protect page from unauthorized access
-    if 'username' not in login_session:
-        abort(401)
-    else:
-        # retrieve genre and user
-        if 'email' in login_session:
-            user = get_user(login_session['email'])
-        genre = session.query(Genre).filter_by(id = genre_id).one()
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    genre = session.query(Genre).filter_by(id = genre_id).one()
 
-        if user and user.id == genre.user_id:
-            if request.method == 'POST':
-                # get all movies of the genre
-                movies = session.query(Movie).filter_by(genre_id = genre_id).all()
-                for movie in movies:
-                    session.delete(movie)
-                session.delete(genre)
-                session.commit()
-                flash("The list %s has been deleted" %genre.name)
-                return redirect('/')
-            else:
-                return render_template("delete_genre.html", user=user, genre=genre)
+    if user and user.id == genre.user_id:
+        if request.method == 'POST':
+            # get all movies of the genre
+            movies = session.query(Movie).filter_by(genre_id = genre_id).all()
+            for movie in movies:
+                session.delete(movie)
+            session.delete(genre)
+            session.commit()
+            flash("The list %s has been deleted" %genre.name)
+            return redirect('/')
         else:
-            abort(401)
+            return render_template("delete_genre.html", user=user, genre=genre)
+    else:
+        abort(401)
 
 # add a movie page
 @app.route('/genre/<int:genre_id>/<int:user_id>/new/', methods=['GET', 'POST'])
+@login_required
 def create_movie(genre_id, user_id):
     """
     create a new movie
     """
-    # protect page from unauthorized access
-    if 'username' not in login_session:
-        abort(401)
-    else:
-        # retrieve user from session
-        if 'email' in login_session:
-            user = get_user(login_session['email'])
-        # retrieve genre
-        genre = session.query(Genre).filter_by(id = genre_id).one()
-        # accept post only if user is not None and user id matches with the genre
-        if user and user.id == genre.user_id:
-            if request.method == 'POST':
-                new_movie = Movie(name=request.form["name"],
-                    storyline=request.form["storyline"],
-                    poster_url=request.form["poster_url"],
-                    trailer_url = request.form["trailer_url"],
-                    user_id=user_id,
-                    genre_id=genre_id)
-                session.add(new_movie)
-                session.commit()
-                flash("A new movie %s added." %new_movie.name)
-                return redirect(url_for('show_movies_genre', genre_id=genre.id, user=user))
-            else:
-                return render_template("create_movie.html", user=user, genre=genre)
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    # retrieve genre
+    genre = session.query(Genre).filter_by(id = genre_id).one()
+    # accept post only if user is not None and user id matches with the genre
+    if user and user.id == genre.user_id:
+        if request.method == 'POST':
+            new_movie = Movie(name=request.form["name"],
+                storyline=request.form["storyline"],
+                poster_url=request.form["poster_url"],
+                trailer_url = request.form["trailer_url"],
+                user_id=user_id,
+                genre_id=genre_id)
+            session.add(new_movie)
+            session.commit()
+            flash("A new movie %s added." %new_movie.name)
+            return redirect(url_for('show_movies_genre', genre_id=genre.id, user=user))
         else:
-            abort(401)
+            return render_template("create_movie.html", user=user, genre=genre)
+    else:
+        abort(401)
 
 # show movie details
 @app.route('/genre/<int:genre_id>/<int:movie_id>/')
@@ -235,66 +227,62 @@ def show_movie_details(genre_id, movie_id):
         return render_template("movie_details.html", movie=movie, url="", genre_id=genre_id, user=user)
 
 
-# edit movie page (not completed)
+# edit movie page
 @app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie', methods=['GET', 'POST'])
+@login_required
 def edit_movie(genre_id, movie_id):
     """
     edit movie info
     """
-    # protect page from unauthorized access
-    if 'username' not in login_session:
-        abort(401)
-    else:
-        if 'email' in login_session:
-            user = get_user(login_session['email'])
-        # retrieve movie and genre
-        try:
-            movie = session.query(Movie).filter_by(id=movie_id).one()
-            genre = session.query(Genre).filter_by(id=genre_id).one()
-        except:
-            return redirect('/')
-        if user and user.id == movie.user_id:
-            if request.method == 'POST':
-                movie.name = request.form["name"]
-                movie.poster_url = request.form["poster_url"]
-                movie.storyline = request.form["storyline"]
-                movie.trailer_url = request.form["trailer_url"]
-                session.add(movie)
-                session.commit()
-                flash("The movie %s has been edited" %movie.name)
-                return redirect(url_for('show_movies_genre', genre_id=genre.id))
-            else:
-                return render_template("edit_movie.html", movie=movie)
+    user = None
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    # retrieve movie and genre
+    try:
+        movie = session.query(Movie).filter_by(id=movie_id).one()
+        genre = session.query(Genre).filter_by(id=genre_id).one()
+    except:
+        return redirect('/')
+    if user and user.id == movie.user_id:
+        if request.method == 'POST':
+            movie.name = request.form["name"]
+            movie.poster_url = request.form["poster_url"]
+            movie.storyline = request.form["storyline"]
+            movie.trailer_url = request.form["trailer_url"]
+            session.add(movie)
+            session.commit()
+            flash("The movie %s has been edited" %movie.name)
+            return redirect(url_for('show_movies_genre', genre_id=genre.id))
         else:
-            abort(401)
+            return render_template("edit_movie.html", movie=movie)
+    else:
+        abort(401)
 
 # delete movie page (not completed)
 @app.route('/genre/<int:genre_id>/<int:movie_id>/delete_movie', methods=['GET', 'POST'])
+@login_required
 def delete_movie(genre_id, movie_id):
     """
     edit movie info
     """
-    if 'username' not in login_session:
-        abort(401)
-    else:
-        if 'email' in login_session:
-            user = get_user(login_session['email'])
-        # retrieve movie and genre
-        try:
-            movie = session.query(Movie).filter_by(id=movie_id).one()
-            genre = session.query(Genre).filter_by(id=genre_id).one()
-        except:
-            return redirect('/')
-        if user and user.id == movie.user_id:
-            if request.method == 'POST':
-                session.delete(movie)
-                session.commit()
-                flash("The movie %s has been deleted" %movie.name)
-                return redirect(url_for('show_movies_genre', genre_id=genre.id))
-            else:
-                return render_template("delete_movie.html", movie=movie, user=user)
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    # retrieve movie and genre
+    try:
+        movie = session.query(Movie).filter_by(id=movie_id).one()
+        genre = session.query(Genre).filter_by(id=genre_id).one()
+    except:
+        return redirect('/')
+    if user and user.id == movie.user_id:
+        if request.method == 'POST':
+            session.delete(movie)
+            session.commit()
+            flash("The movie '%s' has been deleted" %movie.name)
+            return redirect(url_for('show_movies_genre', genre_id=genre.id))
         else:
-            abort(401)
+            return render_template("delete_movie.html", movie=movie, user=user)
+    else:
+        abort(401)
 
 # login page
 @app.route('/login/')
