@@ -24,6 +24,7 @@
                         <label for="trailer_url" class="title">Edit Traler URL(Please use trailer TMDB website)</label>
                     </div>
                 </div>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <div class="row">
                     <div class="col s12 right-align">
                         <button class="btn waves-effect waves-light indigo darken-4" type="submit" name="action">Submit&nbsp;

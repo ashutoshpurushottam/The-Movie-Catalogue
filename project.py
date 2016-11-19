@@ -12,15 +12,17 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask import session as login_session
 from flask import make_response
 from flask import abort
+from flask.ext.seasurf import SeaSurf
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from  sqlalchemy.sql.expression import func
+from sqlalchemy.sql.expression import func
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
-
+# app and extension
 app = Flask(__name__)
+csrf = SeaSurf(app)
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
@@ -46,6 +48,22 @@ def nocache(view):
         return response
         
     return update_wrapper(no_cache, view)
+
+def login_required(func):
+    """
+    Function decorator that controls user permissions.
+    Prevents non-logged in users from performing CRUD operations
+    Input: func: The function to decorate.
+    Returns: decorated function with added permission controls.
+    """
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            flash('Please log in to manage items.')
+            return redirect(url_for('/'))
+        return func(*args, **kwargs)
+    return decorated_function
+
 
 # home page
 @app.route('/')
