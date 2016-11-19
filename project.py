@@ -113,7 +113,8 @@ def edit_genre(genre_id, user_id):
         abort(401)
     # retrieve genre and user
     else:
-        user = session.query(User).filter_by(id = user_id).one()
+        if 'email' in login_session:
+            user = get_user(login_session['email'])
         genre = session.query(Genre).filter_by(id = genre_id).one()
         # only genre creator can edit its description
         if user and user.id == genre.user_id:
@@ -143,19 +144,22 @@ def delete_genre(genre_id, user_id):
         abort(401)
     else:
         # retrieve genre and user
-        user = session.query(User).filter_by(id = user_id).one()
+        if 'email' in login_session:
+            user = get_user(login_session['email'])
         genre = session.query(Genre).filter_by(id = genre_id).one()
 
         if user and user.id == genre.user_id:
             if request.method == 'POST':
+                # get all movies of the genre
+                movies = session.query(Movie).filter_by(genre_id = genre_id).all()
+                for movie in movies:
+                    session.delete(movie)
                 session.delete(genre)
                 session.commit()
                 flash("The list %s has been deleted" %genre.name)
                 return redirect('/')
             else:
                 return render_template("delete_genre.html", user=user, genre=genre)
-            return redirect('/')
-
         else:
             abort(401)
 
@@ -186,9 +190,7 @@ def create_movie(genre_id, user_id):
                 session.add(new_movie)
                 session.commit()
                 flash("A new movie %s added." %new_movie.name)
-                # retrieve movies
-                movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
-                return render_template('genre_movies.html', movies=movies, genre=genre, user=user)
+                return redirect(url_for('show_movies_genre', genre_id=genre.id, user=user))
             else:
                 return render_template("create_movie.html", user=user, genre=genre)
         else:
@@ -222,14 +224,17 @@ def edit_movie(genre_id, movie_id):
     edit movie info
     """
     # protect page from unauthorized access
-    if 'username' not in login_session:x
+    if 'username' not in login_session:
         abort(401)
     else:
         if 'email' in login_session:
             user = get_user(login_session['email'])
         # retrieve movie and genre
-        movie = session.query(Movie).filter_by(id=movie_id).one()
-        genre = session.query(Genre).filter_by(id=genre_id).one()
+        try:
+            movie = session.query(Movie).filter_by(id=movie_id).one()
+            genre = session.query(Genre).filter_by(id=genre_id).one()
+        except:
+            return redirect('/')
         if user and user.id == movie.user_id:
             if request.method == 'POST':
                 movie.name = request.form["name"]
@@ -239,9 +244,7 @@ def edit_movie(genre_id, movie_id):
                 session.add(movie)
                 session.commit()
                 flash("The movie %s has been edited" %movie.name)
-                movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
-                # retrieve movies of this genre
-                return render_template('genre_movies.html', movies=movies, genre=genre, user=user)
+                return redirect(url_for('show_movies_genre', genre_id=genre.id))
             else:
                 return render_template("edit_movie.html", movie=movie)
         else:
@@ -259,17 +262,19 @@ def delete_movie(genre_id, movie_id):
         if 'email' in login_session:
             user = get_user(login_session['email'])
         # retrieve movie and genre
-        movie = session.query(Movie).filter_by(id=movie_id).one()
-        genre = session.query(Genre).filter_by(id=genre_id).one()
+        try:
+            movie = session.query(Movie).filter_by(id=movie_id).one()
+            genre = session.query(Genre).filter_by(id=genre_id).one()
+        except:
+            return redirect('/')
         if user and user.id == movie.user_id:
             if request.method == 'POST':
                 session.delete(movie)
                 session.commit()
                 flash("The movie %s has been deleted" %movie.name)
-                movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
-                return render_template('genre_movies.html', movies=movies, genre=genre, user=user)
+                return redirect(url_for('show_movies_genre', genre_id=genre.id))
             else:
-                return render_template("delete_movie.html", movie=movie)
+                return render_template("delete_movie.html", movie=movie, user=user)
         else:
             abort(401)
 
@@ -560,16 +565,7 @@ def get_user_from_id(id):
     except:
         return None
 
-def get_user_id(genre):
-    """
-    Gets user associated with the genre and returns its id
-    """
-    try:
-        genre = session.query(Genre).filter_by(id=genre_id).one()
-        return genre.user_id
-    except:
-        return None
-
+ 
 def get_user_id(email):
     """
     Gets user id associated with the input email
@@ -579,8 +575,6 @@ def get_user_id(email):
         return user.id
     except:
         return None
-
-
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'

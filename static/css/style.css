@@ -5,10 +5,6 @@ body {
     color: #330000;
 }
 
-.card {
-    margin-bottom: 0.5em;
-}
-
 a.back-to-top {
 	display: none;
 	width: 60px;

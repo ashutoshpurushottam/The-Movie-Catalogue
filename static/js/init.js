@@ -34,3 +34,8 @@ $('#poster_url').focus(function() {
 
 });
 
+// $('.panel').masonry({
+//     itemSelector: '.col',
+//     columnWidth: 33.33%;
+// });
+
