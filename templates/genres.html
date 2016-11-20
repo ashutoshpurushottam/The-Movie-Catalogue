@@ -7,12 +7,12 @@
 			<br><br>
 			<div class = "center-align welcome-text"><i class="fa fa-quote-left" aria-hidden="true"></i>
 				Welcome to the movie catalogue.
-				Login and add your own genres or movies lists to the catalogue.
+				Login and add your own genres or movie lists to the catalogue.
 				<i class="fa fa-quote-right" aria-hidden="true"></i>
 			</div>
 		</div>
 	</div>
-	<!-- Show new genre option is user is registered -->
+	<!-- Show new genre option if user is registered -->
 	<div class="row">
 		<div class="col s12 center-align">
 			<h1 class="main-page-title">Movie Lists</h1>
@@ -40,8 +40,8 @@
 					</a>
 					{% else %}
 					<div class="card-image">
-						<!-- Show kitty placeholder image if there is no poster url -->
-						<img class="responsive-img modal-trigger" src="http://placeholder.com/400/600" 
+						<!-- Show placeholder image if there is no poster url -->
+						<img class="responsive-img modal-trigger" src="http://placehold.it/400x600" 
 						alt="{{genre.name}}" title="{{genre.description}}">
 					</div>
 					{% endif %}

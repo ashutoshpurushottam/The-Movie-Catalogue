@@ -34,6 +34,8 @@ class Genre(Base):
             "name": self.name,
             "description": self.description,
             "poster": self.poster,
+            "owner": self.user.name,
+            "owner_id": self.user_id,
             "id": self.id,
         }
 

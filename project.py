@@ -9,15 +9,17 @@ from functools import wraps, update_wrapper
 from datetime import datetime
 from database_setup import Genre, Base, Movie, User
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask import session as login_session
 from flask import make_response
 from flask import abort
 from werkzeug import secure_filename
+# CSRF protection
 from flask.ext.seasurf import SeaSurf
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import func
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
@@ -26,13 +28,14 @@ from oauth2client.client import FlowExchangeError
 # Configuration for picture uploads
 UPLOAD_FOLDER = '/vagrant/the-movie-catalogue/static/img'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024 
+UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024 # Max Size: 4 MB
 
 
 # app and extension
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = UPLOAD_FILESIZE_LIMIT
+app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
 csrf = SeaSurf(app)
 
 CLIENT_ID = json.loads(
@@ -42,6 +45,7 @@ engine = create_engine('sqlite:///genremoviewithusers.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
+Session = scoped_session(DBSession)
 session = DBSession()
 
 def nocache(view):
@@ -50,6 +54,8 @@ def nocache(view):
         """
         prevents caching of client browser
         decorator to be used where controlling flash messages is required 
+        Input: View
+        Returns: wrapper over the view for cache control
         """
         response = make_response(view(*args, **kwargs))
         response.headers['Last-Modified'] = datetime.now()
@@ -85,7 +91,7 @@ def show_genres():
     # genres in a random order
     genres = session.query(Genre).order_by(func.random()).all()
     user = None
-    # retrieve user from email in login session
+    # retrieve user from email in login_session
     if 'email' in login_session:
         user = get_user(login_session['email'])
     return render_template('genres.html', genres=genres, user=user)
@@ -96,24 +102,18 @@ def show_genres():
 @nocache
 def show_movies_genre(genre_id):
     """show all movies from a genre"""
-    user = None
-    if 'email' in login_session:
-        email = login_session['email']
-        user = get_user(email)
+    user = get_user_from_session(login_session)
     # retrieve movies and genre 
     movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
     genre = session.query(Genre).filter_by(id = genre_id).one()
     return render_template('genre_movies.html', movies = movies, genre = genre, user=user)
 
+# page for creating a new genre
 @app.route('/genre/<int:user_id>/new/', methods=['GET', 'POST'])
 @login_required
 def create_new_genre(user_id):
-    """
-    create a new genre
-    """
-    user = None
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
+    """create a new genre"""
+    user = get_user_from_session(login_session)
     if request.method == 'POST':
         new_genre = Genre(name=request.form["name"], 
             description=request.form["description"],
@@ -136,12 +136,8 @@ def create_new_genre(user_id):
 @app.route('/genre/<int:genre_id>/<int:user_id>/edit/', methods=['GET', 'POST'])
 @login_required
 def edit_genre(genre_id, user_id):
-    """
-    edit genre parameters
-    """
-    user = None
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
+    """edit genre details"""
+    user = get_user_from_session(login_session)
     genre = session.query(Genre).filter_by(id = genre_id).one()
     # only genre creator can edit its description
     if user and user.id == genre.user_id:
@@ -176,13 +172,9 @@ def edit_genre(genre_id, user_id):
 @app.route('/genre/<int:genre_id>/<int:user_id>/delete/', methods=['GET', 'POST'])
 @login_required
 def delete_genre(genre_id, user_id):
-    """
-    delete genre
-    """
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
+    """delete genre alongwith associated movies"""
+    user = get_user_from_session(login_session)
     genre = session.query(Genre).filter_by(id = genre_id).one()
-
     if user and user.id == genre.user_id:
         if request.method == 'POST':
             # get all movies of the genre
@@ -217,11 +209,8 @@ def delete_genre(genre_id, user_id):
 @app.route('/genre/<int:genre_id>/<int:user_id>/new/', methods=['GET', 'POST'])
 @login_required
 def create_movie(genre_id, user_id):
-    """
-    create a new movie
-    """
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
+    """create a new movie"""
+    user = get_user_from_session(login_session)
     # retrieve genre
     genre = session.query(Genre).filter_by(id = genre_id).one()
     # accept post only if user is not None and user id matches with the genre
@@ -253,14 +242,8 @@ def create_movie(genre_id, user_id):
 @app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie', methods=['GET', 'POST'])
 @login_required
 def edit_movie(genre_id, movie_id):
-    """
-    edit movie info
-    """
-    user = None
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
-    # retrieve movie and genre
-    print("user:", user)
+    """edit movie detail"""
+    user = get_user_from_session(login_session)
     try:
         movie = session.query(Movie).filter_by(id=movie_id).one()
         genre = session.query(Genre).filter_by(id=genre_id).one()
@@ -272,7 +255,7 @@ def edit_movie(genre_id, movie_id):
             movie.storyline = request.form["storyline"]
             movie.trailer_url = request.form["trailer_url"]
 
-            # handling picture upload for the genre
+            # handling picture upload for the movie
             pic_file = request.files['poster']
 
             if pic_file and permitted_file(pic_file.filename):
@@ -300,12 +283,8 @@ def edit_movie(genre_id, movie_id):
 # show movie details
 @app.route('/genre/<int:genre_id>/<int:movie_id>/')
 def show_movie_details(genre_id, movie_id):
-    """
-    show movie details
-    """
-    user = None
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
+    """show movie details"""
+    user = get_user_from_session(login_session)
     movie = session.query(Movie).filter_by(id=movie_id).one()
     genre = session.query(Genre).filter_by(id=genre_id).one()
     youtube_url = ""
@@ -326,15 +305,14 @@ def show_movie_details(genre_id, movie_id):
 
 
 
-# delete movie page (not completed)
+# delete movie page
 @app.route('/genre/<int:genre_id>/<int:movie_id>/delete_movie', methods=['GET', 'POST'])
 @login_required
 def delete_movie(genre_id, movie_id):
     """
     edit movie info
     """
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
+    user = get_user_from_session(login_session)
     # retrieve movie and genre
     try:
         movie = session.query(Movie).filter_by(id=movie_id).one()
@@ -358,6 +336,15 @@ def delete_movie(genre_id, movie_id):
             return render_template("delete_movie.html", movie=movie, user=user)
     else:
         abort(401)
+
+# handle request error gracefully
+# call rollback when exception
+@app.teardown_request
+def teardown_request(exception):
+    if exception:
+        session.rollback()
+        Session.remove()
+    Session.remove()
 
 # login page
 @app.route('/login/')
@@ -613,18 +600,25 @@ def disconnect():
         return redirect('/')
 
 
+@app.route('/json')
+@app.route('/movies/json')
+def index_json():
+    """Route for JSON endpoint."""
+    genres = session.query(Genre).all()
+    movies = []
+    for genre in genres:
+        movies.append(genre.serializable)
+        items = session.query(Movie).filter_by(genre_id=genre.id).all()
+        movies[-1]['movies'] = [i.serializable for i in items]
+    return jsonify(Lists=movies)
+
 def permitted_file(filename):
-    """
-    Checks format of an uploaded file
-    """
+    """Checks format of an uploaded file"""
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 def create_user(login_session):
-    """
-    Creates a new user and save in db.
-    Returns its id. 
-    """
+    """Creates a new user and save in db.Returns its id."""
     new_user = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
     session.add(new_user)
@@ -633,20 +627,23 @@ def create_user(login_session):
 
 
 def get_user(email):
-    """
-    Gets user by its email. If the email does not match 
-    returns None.
-    """
+    """Gets user by its email. If the email does not match returns None."""
     try:
         user = session.query(User).filter_by(email=email).one()
         return user
     except:
         return None
 
+def get_user_from_session(s):
+    """Returns user from the login_sessino"""
+    user = None
+    if 'email' in s:
+        email = s['email']
+        user = get_user(email)
+    return user
+
 def get_user_from_id(id):
-    """
-    Gets user from id. In case of no match returns None.
-    """
+    """Gets user from id. In case of no match returns None."""
     try:
         user = session.query(User).filter_by(id = id).one()
         return user
@@ -655,9 +652,7 @@ def get_user_from_id(id):
 
  
 def get_user_id(email):
-    """
-    Gets user id associated with the input email
-    """
+    """Gets user id associated with the input email"""
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
