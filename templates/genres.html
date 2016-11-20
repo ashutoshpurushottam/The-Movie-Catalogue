@@ -28,18 +28,21 @@
 	<!-- Show genre cards for genres -->
 	<div class = "row">
 		{% for genre in genres %}
-			<div class="grid">
+			<div class="card">
 				<div class="panel col m4 s12 card">
-					{% if genre.poster_url %}
-					<div class="card-image">
-						<img class="responsive-img modal-trigger" src="{{genre.poster_url}}" 
-						alt="{{genre.name}}" title="{{genre.description}}">
-					</div>
+					{% if genre.poster %}
+					<!-- Make image link clickable -->
+					<a href="{{ url_for('show_movies_genre', genre_id=genre.id) }}">
+						<div class="card-image">
+							<img class="responsive-img modal-trigger" src="/static/img/{{genre.poster}}" 
+							alt="{{genre.name}}" title="{{genre.description}}">
+						</div>
+					</a>
 					{% else %}
 					<div class="card-image">
 						<!-- Show kitty placeholder image if there is no poster url -->
-						<img class="responsive-img modal-trigger" src="http://placekitten.com/400/600" 
-						alt="{{genre.name}}" title="{{genre.description}} representative image">
+						<img class="responsive-img modal-trigger" src="http://placeholder.com/400/600" 
+						alt="{{genre.name}}" title="{{genre.description}}">
 					</div>
 					{% endif %}
 					<div class="card-content center-align capitalize">

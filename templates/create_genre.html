@@ -2,22 +2,28 @@
 {% block content %}
 <div class="row">
 	<br><br>
-    <div class="col s9 card-panel">
+    <div class="col s10 offset-s1 card-panel">
         <div class="col s12">
             <h2 class="page-title form-header center-align">Create List</h2>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <div class="row">
                     <div class="input-field col s12">
                         <input name="name" id="name" type="text" required>
                         <label for="subject" class="title">Enter List Name</label>
                     </div>
-					<div class="input-field col s12">
-						<input id="poster_url" name="poster_url" type="text" required>
-                        <label for="poster_url" class="title">Enter Poster URL(Please use 600X900 from TMDB website)</label>
-					</div>
                     <div class="input-field col s12">
                         <textarea id="description" name="description" class="materialize-textarea" required></textarea>
                         <label for="description" class="title" required>Enter List Description</label>
+                    </div>
+                    <div class="file-field input-field col s12">
+                        <div class="btn indigo darken-4">
+                            <span>Upload Poster Picture</span>
+                            <input name="poster" id="poster" type="file">
+                        </div>
+                        <!-- Use inline style as external not working -->
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" placeholder="Please use 600 X 900 images" style="text-align: center">
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
@@ -30,9 +36,6 @@
                 </div>
             </form>
         </div>
-    </div>
-    <div class="col s3" id="image-div" hidden="hidden">
-        <p>Preview:</p><img id="preview-image" width="100%">
     </div>
 </div>
 {% endblock %}

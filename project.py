@@ -1,3 +1,4 @@
+import os
 import sys
 import httplib2
 import random, string
@@ -12,6 +13,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask import session as login_session
 from flask import make_response
 from flask import abort
+from werkzeug import secure_filename
 from flask.ext.seasurf import SeaSurf
 
 from sqlalchemy import create_engine
@@ -115,11 +117,17 @@ def create_new_genre(user_id):
     if request.method == 'POST':
         new_genre = Genre(name=request.form["name"], 
             description=request.form["description"],
-            poster_url=request.form["poster_url"],
             user_id=user_id)
+        # handling picture upload for the genre
+        pic_file = request.files['poster']
+        if pic_file and permitted_file(pic_file.filename):
+            filename = secure_filename(pic_file.filename)
+            pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            new_genre.poster = filename
+
         session.add(new_genre)
         session.commit()
-        flash("A new list %s is created by %s." %(new_genre.name, user.name))
+        flash("A new list '%s' is created by %s." %(new_genre.name, user.name))
         return redirect('/')
     else:
         return render_template('create_genre.html', user=user)
@@ -139,11 +147,24 @@ def edit_genre(genre_id, user_id):
     if user and user.id == genre.user_id:
         if request.method == 'POST':
             genre.name = request.form["name"]
-            genre.poster_url = request.form["poster_url"]
             genre.description = request.form["description"]
+
+            # handling picture upload for the genre
+            pic_file = request.files['poster']
+
+            if pic_file and permitted_file(pic_file.filename):
+                filename = secure_filename(pic_file.filename)
+                pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                # remove older poster
+                if genre.poster:
+                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'], genre.poster)
+                    os.remove(path)
+                #update poster
+                genre.poster = filename
+
             session.add(genre)
             session.commit()
-            flash("The list %s has been edited" %genre.name)
+            flash("The list '%s' has been edited" %genre.name)
             return redirect('/')
         else:
             return render_template("edit_genre.html", user=user, genre=genre)
@@ -168,9 +189,24 @@ def delete_genre(genre_id, user_id):
             movies = session.query(Movie).filter_by(genre_id = genre_id).all()
             for movie in movies:
                 session.delete(movie)
+                # remove posters of movies
+                if movie.poster:
+                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
+                    try:
+                        os.remove(path)
+                    except:
+                        print("Exception trying to removing movie poster of")
+            # delete poster of the genre
+            if genre.poster:
+                path = "%s/%s" % (app.config['UPLOAD_FOLDER'], genre.poster)
+                try:
+                    os.remove(path)
+                except:
+                    print("Can not delete poster of the genre")
+
             session.delete(genre)
             session.commit()
-            flash("The list %s has been deleted" %genre.name)
+            flash("The list '%s' has been deleted" %genre.name)
             return redirect('/')
         else:
             return render_template("delete_genre.html", user=user, genre=genre)
@@ -193,16 +229,71 @@ def create_movie(genre_id, user_id):
         if request.method == 'POST':
             new_movie = Movie(name=request.form["name"],
                 storyline=request.form["storyline"],
-                poster_url=request.form["poster_url"],
                 trailer_url = request.form["trailer_url"],
                 user_id=user_id,
                 genre_id=genre_id)
+            # handling picture upload for the genre
+            pic_file = request.files['poster']
+
+            if pic_file and permitted_file(pic_file.filename):
+                filename = secure_filename(pic_file.filename)
+                pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                new_movie.poster = filename
+
             session.add(new_movie)
             session.commit()
-            flash("A new movie %s added." %new_movie.name)
+            flash("A new movie '%s' has been added." %new_movie.name)
             return redirect(url_for('show_movies_genre', genre_id=genre.id, user=user))
         else:
             return render_template("create_movie.html", user=user, genre=genre)
+    else:
+        abort(401)
+
+# edit movie page
+@app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie', methods=['GET', 'POST'])
+@login_required
+def edit_movie(genre_id, movie_id):
+    """
+    edit movie info
+    """
+    user = None
+    if 'email' in login_session:
+        user = get_user(login_session['email'])
+    # retrieve movie and genre
+    print("user:", user)
+    try:
+        movie = session.query(Movie).filter_by(id=movie_id).one()
+        genre = session.query(Genre).filter_by(id=genre_id).one()
+    except:
+        return redirect('/')
+    if user and user.id == movie.user_id:
+        if request.method == 'POST':
+            movie.name = request.form["name"]
+            movie.storyline = request.form["storyline"]
+            movie.trailer_url = request.form["trailer_url"]
+
+            # handling picture upload for the genre
+            pic_file = request.files['poster']
+
+            if pic_file and permitted_file(pic_file.filename):
+                filename = secure_filename(pic_file.filename)
+                pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                # remove older poster
+                if movie.poster:
+                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
+                    try:
+                        os.remove(path)
+                    except:
+                        print("Exception in trying to remove movie poster of")
+                #update poster
+                movie.poster = filename
+
+            session.add(movie)
+            session.commit()
+            flash("The movie '%s' has been edited" %movie.name)
+            return redirect(url_for('show_movies_genre', genre_id=genre.id))
+        else:
+            return render_template("edit_movie.html", movie=movie, user=user)
     else:
         abort(401)
 
@@ -221,42 +312,19 @@ def show_movie_details(genre_id, movie_id):
     try:
         append = movie.trailer_url.split(".be/")[1]
         youtube_url = "https://www.youtube.com/embed/" + append
-        return render_template("movie_details.html", movie=movie, url=youtube_url, user=user, genre_id=genre_id)
+        return render_template("movie_details.html", 
+            movie=movie, 
+            url=youtube_url, 
+            user=user, 
+            genre_id=genre_id)
     except:
         print("No valid youtube URL")
-        return render_template("movie_details.html", movie=movie, url="", genre_id=genre_id, user=user)
+        return render_template("movie_details.html", 
+            movie=movie, url="", 
+            genre_id=genre_id, 
+            user=user)
 
 
-# edit movie page
-@app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie', methods=['GET', 'POST'])
-@login_required
-def edit_movie(genre_id, movie_id):
-    """
-    edit movie info
-    """
-    user = None
-    if 'email' in login_session:
-        user = get_user(login_session['email'])
-    # retrieve movie and genre
-    try:
-        movie = session.query(Movie).filter_by(id=movie_id).one()
-        genre = session.query(Genre).filter_by(id=genre_id).one()
-    except:
-        return redirect('/')
-    if user and user.id == movie.user_id:
-        if request.method == 'POST':
-            movie.name = request.form["name"]
-            movie.poster_url = request.form["poster_url"]
-            movie.storyline = request.form["storyline"]
-            movie.trailer_url = request.form["trailer_url"]
-            session.add(movie)
-            session.commit()
-            flash("The movie %s has been edited" %movie.name)
-            return redirect(url_for('show_movies_genre', genre_id=genre.id))
-        else:
-            return render_template("edit_movie.html", movie=movie)
-    else:
-        abort(401)
 
 # delete movie page (not completed)
 @app.route('/genre/<int:genre_id>/<int:movie_id>/delete_movie', methods=['GET', 'POST'])
@@ -275,6 +343,13 @@ def delete_movie(genre_id, movie_id):
         return redirect('/')
     if user and user.id == movie.user_id:
         if request.method == 'POST':
+            # remove old movie poster
+            if movie.poster:
+                path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
+                try:
+                    os.remove(path)
+                except:
+                    print("Exception trying to removie movie poster of")
             session.delete(movie)
             session.commit()
             flash("The movie '%s' has been deleted" %movie.name)
@@ -536,6 +611,13 @@ def disconnect():
         return redirect('/')
     else:
         return redirect('/')
+
+
+def permitted_file(filename):
+    """
+    Checks format of an uploaded file
+    """
+    return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 def create_user(login_session):

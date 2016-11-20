@@ -21,7 +21,7 @@ def query_all_genres():
     """Retrieve all restaurants from the db and print their info"""
     result = session.query(Genre).all()
     for genre in result:
-        print("genre: %s\ndescription: %s\nposter_url: %s\nuser_id:%s" %(genre.name, genre.description, genre.poster_url, genre.user_id))
+        print("genre: %s\ndescription: %s\nposter: %s\nuser_id:%s" %(genre.name, genre.description, genre.poster, genre.user_id))
         print("**************************")
 
 def query_all_movies():
@@ -29,9 +29,10 @@ def query_all_movies():
     result = session.query(Movie).all()
     print("total movies: %s" %len(result) )
     for movie in result:
+        print("movie poster: %s" %movie.poster)
         print("%s trailer:%s  genre:%s user_id:%s" %(movie.name, movie.trailer_url, movie.genre, movie.user_id))
         print("-------------------------------------------------")
 
-#query_all_movies()
-query_all_genres()
+query_all_movies()
+#query_all_genres()
 # query_all_users()

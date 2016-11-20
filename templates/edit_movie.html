@@ -5,16 +5,12 @@
     <div class="col s9 card-panel">
         <div class="col s12">
             <h2 class="page-title form-header center-align">Edit Movie</h2>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <div class="row">
                     <div class="input-field col s12">
                         <input name="name" id="name" type="text"  value="{{movie.name}}" required>
                         <label for="subject" class="title">Edit Movie Name</label>
                     </div>
-					<div class="input-field col s12">
-						<input id="poster_url" name="poster_url" type="text" value="{{movie.poster_url}}" required>
-                        <label for="poster_url" class="title">Edit Poster URL(Please use 600X900 from TMDB website)</label>
-					</div>
                     <div class="input-field col s12">
                         <textarea id="storyline" name="storyline" class="materialize-textarea" required>{{movie.storyline}}</textarea>
                         <label for="storyline" class="title" required>Edit storyline</label>
@@ -22,6 +18,15 @@
                     <div class="input-field col s12">
                         <input id="trailer_url" name="trailer_url" type="text" value="{{movie.trailer_url}}" required>
                         <label for="trailer_url" class="title">Edit Traler URL(Please use trailer TMDB website)</label>
+                    </div>
+                    <div class="file-field input-field col s12">
+                        <div class="btn indigo darken-4">
+                            <span>Change Poster</span>
+                            <input name="poster" id="poster" type="file">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" placeholder="Upload a different poster" style="text-align: center;">
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
@@ -35,8 +40,8 @@
             </form>
         </div>
     </div>
-    <div class="col s3" id="image-div" hidden="hidden">
-        <p>Preview:</p><img id="preview-image" width="100%">
+    <div class="col s3" id="image-div">
+        <p>Current Poster:</p><img id="preview-image" width="100%" src="/static/img/{{movie.poster}}">
     </div>
 </div>
 {% endblock %}

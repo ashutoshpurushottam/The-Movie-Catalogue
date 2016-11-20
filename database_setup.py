@@ -23,7 +23,7 @@ class Genre(Base):
     id = Column(Integer, primary_key = True)
     name = Column(String(250), nullable = False, unique = True)
     description = Column(String(500), nullable = False)
-    poster_url = Column(String(250))
+    poster = Column(String(250))
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
     
@@ -33,7 +33,7 @@ class Genre(Base):
         return {
             "name": self.name,
             "description": self.description,
-            "poster_url": self.poster_url,
+            "poster": self.poster,
             "id": self.id,
         }
 
@@ -44,7 +44,7 @@ class Movie(Base):
     id = Column(Integer, primary_key = True)
     name = Column(String(250), nullable = False)
     storyline = Column(String(500))
-    poster_url = Column(String(250))
+    poster = Column(String(250))
     trailer_url = Column(String(250))
     genre_id = Column(Integer, ForeignKey('genre.id'))
     genre = relationship(Genre)
@@ -57,7 +57,7 @@ class Movie(Base):
         return {
             "name": self.name,
             "storyline": self.storyline,
-            "poster_url": self.poster_url,
+            "poster": self.poster,
             "trailer_url": self.trailer_url,
             "id": self.id
         }

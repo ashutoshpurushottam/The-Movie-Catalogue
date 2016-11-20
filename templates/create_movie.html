@@ -2,26 +2,31 @@
 {% block content %}
 <div class="row">
 	<br><br>
-    <div class="col s9 card-panel">
+    <div class="col s10 offset-s1 card-panel">
         <div class="col s12">
             <h2 class="page-title form-header center-align">Add Movie</h2>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <div class="row">
                     <div class="input-field col s12">
                         <input name="name" id="name" type="text" required>
                         <label for="subject" class="title">Enter Movie Name</label>
                     </div>
-					<div class="input-field col s12">
-						<input id="poster_url" name="poster_url" type="text" required>
-                        <label for="poster_url" class="title">Enter Poster URL(Please use 600X900 from TMDB website)</label>
-					</div>
                     <div class="input-field col s12">
                         <textarea id="storyline" name="storyline" class="materialize-textarea" required></textarea>
                         <label for="storyline" class="title" required>Enter storyline</label>
                     </div>
                     <div class="input-field col s12">
                         <input id="trailer_url" name="trailer_url" type="text" required>
-                        <label for="trailer_url" class="title">Enter Traler URL(Please use trailer TMDB website)</label>
+                        <label for="trailer_url" class="title">Enter Traler URL(Please use URL starting with https://www.youtube.com/embed/)</label>
+                    </div>
+                    <div class="file-field input-field col s12">
+                        <div class="btn indigo darken-4">
+                            <span>Upload Poster</span>
+                            <input name="poster" id="poster" type="file">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" placeholder="Upload movie poster" style="text-align: center">
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">

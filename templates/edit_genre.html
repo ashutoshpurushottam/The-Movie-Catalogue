@@ -5,20 +5,25 @@
     <div class="col s9 card-panel">
         <div class="col s12">
             <h2 class="page-header form-header center-align page-title">Edit Genre</h2>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <div class="row">
                     <div class="input-field col s12">
                         <input name="name" id="name" type="text" value="{{genre.name}}">
                         <label for="subject" class="title">Enter Name</label>
                     </div>
-                    <div class="input-field col s12">
-                        <input id="poster_url" name="poster_url" type="text" value="{{genre.poster_url}}">
-                        <label for="poster_url" class="title">Enter Poster URL(Please use 600X900 poster from TMDB website)</label>
-                    </div>
 					<div class="input-field col s12">
 						<textarea id="description" name="description" class="materialize-textarea" required>{{genre.description}}</textarea>
                         <label for="description" class="title">Enter Description</label>
 					</div>
+                    <div class="file-field input-field col s12">
+                        <div class="btn indigo darken-4">
+                            <span>Change Poster</span>
+                            <input name="poster" id="poster" type="file">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" placeholder="Upload a different poster" style="text-align: center">
+                        </div>
+                    </div>
                 </div>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <div class="row">
@@ -31,8 +36,8 @@
             </form>
         </div>
     </div>
-    <div class="col s3" id="image-div" hidden="hidden">
-        <p>Preview:</p><img id="preview-image" width="100%">
+    <div class="col s3" id="image-div">
+        <p>Current Poster:</p><img id="preview-image" width="100%" src="/static/img/{{genre.poster}}">
     </div>
 </div>
 {% endblock %}
