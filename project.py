@@ -72,7 +72,7 @@ def login_required(func):
     Function decorator that controls user permissions.
     Prevents non-logged in users from performing CRUD operations
     Input: func: The function to decorate.
-    Returns: decorated function with added permission controls.
+    Return: decorated function with added permission controls.
     """
     @wraps(func)
     def decorated_function(*args, **kwargs):
@@ -363,15 +363,6 @@ def unhandled_exception(e):
     Session.remove()    
     return render_template('unhandled.html', error=error, user=user), 500
 
-# TODO: may need this method (don't remove for now)
-# # handle request error gracefully
-# # call rollback when exception
-# @app.teardown_request
-# def teardown_request(exception):
-#     if exception:
-#         session.rollback()
-#         Session.remove()
-#     Session.remove()
 
 # login page
 @app.route('/login/')
