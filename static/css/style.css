@@ -60,7 +60,7 @@ a.back-to-top {
 
 /* styles for '...' */
 
-.block-with-text {
+p.block-with-text {
     /* hide text if it more than N lines  */
     
     overflow: hidden;
@@ -69,7 +69,7 @@ a.back-to-top {
     position: relative;
     /* use this value to count block height */
     
-    line-height: 1.2em;
+    line-height: 1.20em;
     /* max-height = line-height (1.2) * lines max number (3) */
     
     max-height: 6.0em;

@@ -28,7 +28,7 @@
 	<div class = "row">
 		<!-- Show all movies belonging to genre -->
 		{% if movies|length == 0 %}
-			<p class="center-align">There are no movies in this list.</p>
+			<p class="center-align">There are no movie in this list.</p>
 		{% endif %}
 		{% if movies|length == 0 and user and user.id == genre.user_id %}
 			<p class="center-align">Press "Add" Button above to add a new movie.</p>
@@ -38,12 +38,13 @@
 			<div class="col s12 m3 card">
 					<div class="card-image">
 						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}">
-						<img src="/static/img/{{movie.poster}}" alt="{{movie.name}}" class="responsive-img" title="{{movie.storyline}}">
+						<img src="/static/img/{{movie.poster}}" alt="{{movie.name}}" class="responsive-img">
 						</a>
 					</div>
 					<div class="card-content">
 						<p class="block-with-text">{{movie.storyline}}</p>
 					</div>
+					
 					<div class="card-action center-align">
 						<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}"><span class="page-link movie-title">See Details</span></a>
 					</div>
