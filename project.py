@@ -21,6 +21,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import func
+from sqlalchemy.exc import IntegrityError
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
@@ -232,9 +233,9 @@ def create_movie(genre_id, user_id):
             session.add(new_movie)
             session.commit()
             flash("A new movie '%s' has been added." %new_movie.name)
-            return redirect(url_for('show_movies_genre', genre_id=genre.id, user=user))
+            return redirect(url_for('show_movies_genre', genre_id=genre.id))
         else:
-            return render_template("create_movie.html", user=user, genre=genre)
+            return render_template("create_movie.html", genre=genre, user=user)
     else:
         abort(401)
 
@@ -337,14 +338,40 @@ def delete_movie(genre_id, movie_id):
     else:
         abort(401)
 
-# handle request error gracefully
-# call rollback when exception
-@app.teardown_request
-def teardown_request(exception):
-    if exception:
-        session.rollback()
-        Session.remove()
-    Session.remove()
+@app.errorhandler(413)
+def upload_size_error(e):
+    """Catches 413 error from photo size uploa    
+    Input:
+        e: Error object
+    Returns:
+        413.html
+    """
+    user = get_user_from_session(login_session)
+
+    return render_template('413.html', user=user), 413
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(e):
+    user = get_user_from_session(login_session)
+    app.logger.error('Unhandled Exception: %s', (e))
+    if isinstance(e, IntegrityError):
+        error = "Duplicate Entry Tried."
+    else:
+        error = "Some server error occured."
+    session.rollback()
+    Session.remove()    
+    return render_template('unhandled.html', error=error, user=user), 500
+
+# TODO: may need this method (don't remove for now)
+# # handle request error gracefully
+# # call rollback when exception
+# @app.teardown_request
+# def teardown_request(exception):
+#     if exception:
+#         session.rollback()
+#         Session.remove()
+#     Session.remove()
 
 # login page
 @app.route('/login/')
@@ -529,7 +556,7 @@ def fbconnect():
     # populate login session
     login_session['username'] = data['name']
     print login_session['username']
-    if 'email' in login_session:
+    if 'email' in data:
         login_session['email'] = data['email']
     else:
         # it is possible for the user to not to have any email. So we will 
