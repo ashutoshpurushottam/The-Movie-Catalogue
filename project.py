@@ -1,7 +1,8 @@
 import os
 import sys
 import httplib2
-import random, string
+import random
+import string
 import json
 import requests
 
@@ -29,7 +30,7 @@ from oauth2client.client import FlowExchangeError
 # Configuration for picture uploads
 UPLOAD_FOLDER = '/vagrant/the-movie-catalogue/static/img'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024 # Max Size: 4 MB
+UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024  # Max Size: 4 MB
 
 
 # app and extension
@@ -49,6 +50,7 @@ DBSession = sessionmaker(bind=engine)
 Session = scoped_session(DBSession)
 session = DBSession()
 
+
 def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
@@ -60,12 +62,14 @@ def nocache(view):
         """
         response = make_response(view(*args, **kwargs))
         response.headers['Last-Modified'] = datetime.now()
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers[
+            'Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'
         return response
-        
+
     return update_wrapper(no_cache, view)
+
 
 def login_required(func):
     """
@@ -98,27 +102,32 @@ def show_genres():
     return render_template('genres.html', genres=genres, user=user)
 
 # page for showing movies of a genre or a list
+
+
 @app.route('/genre/<int:genre_id>/movies/')
 @app.route('/genre/<int:genre_id>/')
 @nocache
 def show_movies_genre(genre_id):
     """show all movies from a genre"""
     user = get_user_from_session(login_session)
-    # retrieve movies and genre 
-    movies = session.query(Movie).filter_by(genre_id = genre_id).order_by(func.random()).all()
-    genre = session.query(Genre).filter_by(id = genre_id).one()
-    return render_template('genre_movies.html', movies = movies, genre = genre, user=user)
+    # retrieve movies and genre
+    movies = session.query(Movie).filter_by(
+        genre_id=genre_id).order_by(func.random()).all()
+    genre = session.query(Genre).filter_by(id=genre_id).one()
+    return render_template('genre_movies.html', movies=movies, genre=genre, user=user)
 
 # page for creating a new genre
+
+
 @app.route('/genre/<int:user_id>/new/', methods=['GET', 'POST'])
 @login_required
 def create_new_genre(user_id):
     """create a new genre"""
     user = get_user_from_session(login_session)
     if request.method == 'POST':
-        new_genre = Genre(name=request.form["name"], 
-            description=request.form["description"],
-            user_id=user_id)
+        new_genre = Genre(name=request.form["name"],
+                          description=request.form["description"],
+                          user_id=user_id)
         # handling picture upload for the genre
         pic_file = request.files['poster']
         if pic_file and permitted_file(pic_file.filename):
@@ -128,18 +137,21 @@ def create_new_genre(user_id):
 
         session.add(new_genre)
         session.commit()
-        flash("A new list '%s' is created by %s." %(new_genre.name, user.name))
+        flash("A new list '%s' is created by %s." %
+              (new_genre.name, user.name))
         return redirect('/')
     else:
         return render_template('create_genre.html', user=user)
 
 # edit genre page
+
+
 @app.route('/genre/<int:genre_id>/<int:user_id>/edit/', methods=['GET', 'POST'])
 @login_required
 def edit_genre(genre_id, user_id):
     """edit genre details"""
     user = get_user_from_session(login_session)
-    genre = session.query(Genre).filter_by(id = genre_id).one()
+    genre = session.query(Genre).filter_by(id=genre_id).one()
     # only genre creator can edit its description
     if user and user.id == genre.user_id:
         if request.method == 'POST':
@@ -151,17 +163,19 @@ def edit_genre(genre_id, user_id):
 
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
-                pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                pic_file.save(os.path.join(
+                    app.config['UPLOAD_FOLDER'], filename))
                 # remove older poster
                 if genre.poster:
-                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'], genre.poster)
+                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'],
+                                      genre.poster)
                     os.remove(path)
-                #update poster
+                # update poster
                 genre.poster = filename
 
             session.add(genre)
             session.commit()
-            flash("The list '%s' has been edited" %genre.name)
+            flash("The list '%s' has been edited" % genre.name)
             return redirect('/')
         else:
             return render_template("edit_genre.html", user=user, genre=genre)
@@ -170,21 +184,24 @@ def edit_genre(genre_id, user_id):
         abort(401)
 
 # delete genre page
+
+
 @app.route('/genre/<int:genre_id>/<int:user_id>/delete/', methods=['GET', 'POST'])
 @login_required
 def delete_genre(genre_id, user_id):
     """delete genre alongwith associated movies"""
     user = get_user_from_session(login_session)
-    genre = session.query(Genre).filter_by(id = genre_id).one()
+    genre = session.query(Genre).filter_by(id=genre_id).one()
     if user and user.id == genre.user_id:
         if request.method == 'POST':
             # get all movies of the genre
-            movies = session.query(Movie).filter_by(genre_id = genre_id).all()
+            movies = session.query(Movie).filter_by(genre_id=genre_id).all()
             for movie in movies:
                 session.delete(movie)
                 # remove posters of movies
                 if movie.poster:
-                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
+                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'],
+                                      movie.poster)
                     try:
                         os.remove(path)
                     except:
@@ -199,7 +216,7 @@ def delete_genre(genre_id, user_id):
 
             session.delete(genre)
             session.commit()
-            flash("The list '%s' has been deleted" %genre.name)
+            flash("The list '%s' has been deleted" % genre.name)
             return redirect('/')
         else:
             return render_template("delete_genre.html", user=user, genre=genre)
@@ -207,32 +224,35 @@ def delete_genre(genre_id, user_id):
         abort(401)
 
 # add a movie page
+
+
 @app.route('/genre/<int:genre_id>/<int:user_id>/new/', methods=['GET', 'POST'])
 @login_required
 def create_movie(genre_id, user_id):
     """create a new movie"""
     user = get_user_from_session(login_session)
     # retrieve genre
-    genre = session.query(Genre).filter_by(id = genre_id).one()
+    genre = session.query(Genre).filter_by(id=genre_id).one()
     # accept post only if user is not None and user id matches with the genre
     if user and user.id == genre.user_id:
         if request.method == 'POST':
             new_movie = Movie(name=request.form["name"],
-                storyline=request.form["storyline"],
-                trailer_url = request.form["trailer_url"],
-                user_id=user_id,
-                genre_id=genre_id)
+                              storyline=request.form["storyline"],
+                              trailer_url=request.form["trailer_url"],
+                              user_id=user_id,
+                              genre_id=genre_id)
             # handling picture upload for the genre
             pic_file = request.files['poster']
 
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
-                pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                pic_file.save(os.path.join(
+                    app.config['UPLOAD_FOLDER'], filename))
                 new_movie.poster = filename
 
             session.add(new_movie)
             session.commit()
-            flash("A new movie '%s' has been added." %new_movie.name)
+            flash("A new movie '%s' has been added." % new_movie.name)
             return redirect(url_for('show_movies_genre', genre_id=genre.id))
         else:
             return render_template("create_movie.html", genre=genre, user=user)
@@ -240,6 +260,8 @@ def create_movie(genre_id, user_id):
         abort(401)
 
 # edit movie page
+
+
 @app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie', methods=['GET', 'POST'])
 @login_required
 def edit_movie(genre_id, movie_id):
@@ -261,20 +283,22 @@ def edit_movie(genre_id, movie_id):
 
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
-                pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                pic_file.save(os.path.join(
+                    app.config['UPLOAD_FOLDER'], filename))
                 # remove older poster
                 if movie.poster:
-                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
+                    path = "%s/%s" % (app.config['UPLOAD_FOLDER'],
+                                      movie.poster)
                     try:
                         os.remove(path)
                     except:
                         print("Exception in trying to remove movie poster of")
-                #update poster
+                # update poster
                 movie.poster = filename
 
             session.add(movie)
             session.commit()
-            flash("The movie '%s' has been edited" %movie.name)
+            flash("The movie '%s' has been edited" % movie.name)
             return redirect(url_for('show_movies_genre', genre_id=genre.id))
         else:
             return render_template("edit_movie.html", movie=movie, user=user)
@@ -282,6 +306,8 @@ def edit_movie(genre_id, movie_id):
         abort(401)
 
 # show movie details
+
+
 @app.route('/genre/<int:genre_id>/<int:movie_id>/')
 def show_movie_details(genre_id, movie_id):
     """show movie details"""
@@ -292,18 +318,17 @@ def show_movie_details(genre_id, movie_id):
     try:
         append = movie.trailer_url.split(".be/")[1]
         youtube_url = "https://www.youtube.com/embed/" + append
-        return render_template("movie_details.html", 
-            movie=movie, 
-            url=youtube_url, 
-            user=user, 
-            genre_id=genre_id)
+        return render_template("movie_details.html",
+                               movie=movie,
+                               url=youtube_url,
+                               user=user,
+                               genre_id=genre_id)
     except:
         print("No valid youtube URL")
-        return render_template("movie_details.html", 
-            movie=movie, url="", 
-            genre_id=genre_id, 
-            user=user)
-
+        return render_template("movie_details.html",
+                               movie=movie, url="",
+                               genre_id=genre_id,
+                               user=user)
 
 
 # delete movie page
@@ -331,12 +356,13 @@ def delete_movie(genre_id, movie_id):
                     print("Exception trying to removie movie poster of")
             session.delete(movie)
             session.commit()
-            flash("The movie '%s' has been deleted" %movie.name)
+            flash("The movie '%s' has been deleted" % movie.name)
             return redirect(url_for('show_movies_genre', genre_id=genre.id))
         else:
             return render_template("delete_movie.html", movie=movie, user=user)
     else:
         abort(401)
+
 
 @app.errorhandler(413)
 def upload_size_error(e):
@@ -344,11 +370,13 @@ def upload_size_error(e):
     user = get_user_from_session(login_session)
     return render_template('413.html', user=user), 413
 
+
 @app.errorhandler(401)
 def unauthorized_error(e):
     """Catches 401 error from unauthorized success"""
     user = get_user_from_session(login_session)
     return render_template('401.html', user=user), 413
+
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
@@ -359,7 +387,7 @@ def unhandled_exception(e):
     else:
         error = "Some server error occured."
     session.rollback()
-    Session.remove()    
+    Session.remove()
     return render_template('unhandled.html', error=error, user=user), 500
 
 
@@ -367,11 +395,11 @@ def unhandled_exception(e):
 @app.route('/login/')
 def show_login():
     # anti-forgery state token
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits) 
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
     return render_template('login.html', STATE=state)
-    
+
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -398,7 +426,7 @@ def gconnect():
         return response
 
     access_token = credentials.access_token
-    
+
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
     h = httplib2.Http()
@@ -450,7 +478,7 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
     login_session['provider'] = 'google'
-    
+
     # see if user exists or not, if not create a new one
     user = get_user(login_session['email'])
     if not user:
@@ -468,6 +496,7 @@ def gconnect():
     flash("You are now logged in as %s" % login_session['username'])
     print "done!"
     return output
+
 
 @app.route('/gdisconnect')
 def gdisconnect():
@@ -497,6 +526,7 @@ def gdisconnect():
             json.dumps('Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
+
 
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
@@ -549,8 +579,9 @@ def fbconnect():
     if 'email' in data:
         login_session['email'] = data['email']
     else:
-        # it is possible for the user to not to have any email. So we will 
-        # set username@facebook.com string as the email (guaranteed to be unique)
+        # it is possible for the user to not to have any email. So we will
+        # set username@facebook.com string as the email (guaranteed to be
+        # unique)
         login_session['email'] = data['name'] + '@facebook.com'
     login_session['facebook_id'] = data['id']
     login_session['provider'] = 'facebook'
@@ -585,6 +616,7 @@ def fbconnect():
     flash("You are now logged in as %s" % login_session['username'])
     return output
 
+
 def fbdisconnect():
     """ Log out of facebook """
     facebook_id = login_session['facebook_id']
@@ -595,6 +627,7 @@ def fbdisconnect():
     http_ = httplib2.Http()
     result = http_.request(url, 'DELETE')[1]
     return 'You have logged out.'
+
 
 @app.route('/logout')
 def disconnect():
@@ -629,6 +662,7 @@ def index_json():
         movies[-1]['movies'] = [i.serializable for i in items]
     return jsonify(Lists=movies)
 
+
 def permitted_file(filename):
     """Checks format of an uploaded file"""
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -637,10 +671,10 @@ def permitted_file(filename):
 def create_user(login_session):
     """Creates a new user and save in db.Returns its id."""
     new_user = User(name=login_session['username'], email=login_session[
-                   'email'], picture=login_session['picture'])
+        'email'], picture=login_session['picture'])
     session.add(new_user)
     session.commit()
-    return new_user.id    
+    return new_user.id
 
 
 def get_user(email):
@@ -651,6 +685,7 @@ def get_user(email):
     except:
         return None
 
+
 def get_user_from_session(s):
     """Returns user from the login_sessino"""
     user = None
@@ -659,15 +694,16 @@ def get_user_from_session(s):
         user = get_user(email)
     return user
 
+
 def get_user_from_id(id):
     """Gets user from id. In case of no match returns None."""
     try:
-        user = session.query(User).filter_by(id = id).one()
+        user = session.query(User).filter_by(id=id).one()
         return user
     except:
         return None
 
- 
+
 def get_user_id(email):
     """Gets user id associated with the input email"""
     try:
@@ -679,4 +715,4 @@ def get_user_id(email):
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
-    app.run(host='0.0.0.0', port = 5000)
+    app.run(host='0.0.0.0', port=5000)

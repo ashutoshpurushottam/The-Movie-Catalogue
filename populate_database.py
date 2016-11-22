@@ -44,7 +44,7 @@ session.commit()
 # Add genres
 action = Genre(
     name="action",
-    description="A film genre in which the protagonist or protagonists end up in a series of challenges that" 
+    description="A film genre in which the protagonist or protagonists end up in a series of challenges that"
     "typically include violence, close combat, physical feats and frantic chases",
     user_id=1)
 
@@ -112,12 +112,14 @@ def get_request_token():
     token = config['request_token']
     return token
 
+
 def authenticate_token():
     """
     authenticate token
     """
     token = get_request_token()
-    parameters = "?api_key=" + API_KEY + "&request_token=" + token + "&username=" + USERNAME + "&password=" + PASSWORD
+    parameters = "?api_key=" + API_KEY + "&request_token=" + \
+        token + "&username=" + USERNAME + "&password=" + PASSWORD
     url_string = BASE_URL_SECURE_STRING + LOGIN_METHOD + parameters
     r = requests.get(url_string)
     return token
@@ -148,6 +150,7 @@ def get_account_id():
     user_id = response_json['id']
     return user_id, session_id
 
+
 def get_favorite_movies_id():
     """
     returns list of ids of movies in the favorite list of the user
@@ -157,7 +160,8 @@ def get_favorite_movies_id():
     get_favorite_movies_method = get_favorite_movies_method.format(id=user_id)
     movies_array = []
     for count in range(1, 3):
-        parameters = "?api_key=%s&session_id=%s&sort_by=created_at.asc&page=%s" %(API_KEY,session_id,count)
+        parameters = "?api_key=%s&session_id=%s&sort_by=created_at.asc&page=%s" % (
+            API_KEY, session_id, count)
         url_string = BASE_URL_SECURE_STRING + get_favorite_movies_method + parameters
         r = requests.get(url_string)
         response_json = r.json()
@@ -195,11 +199,11 @@ for id in get_favorite_movies_id():
         movie_genre = fantasy
 
     movie = Movie(
-        name = movie_title,
-        storyline = movie_overview,
-        trailer_url = movie_trailer_url,
-        genre = movie_genre,
-        user_id = 1
+        name=movie_title,
+        storyline=movie_overview,
+        trailer_url=movie_trailer_url,
+        genre=movie_genre,
+        user_id=1
     )
 
     session.add(movie)

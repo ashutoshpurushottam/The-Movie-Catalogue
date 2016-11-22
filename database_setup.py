@@ -7,26 +7,28 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
+
 class User(Base):
     """Users of the movie catalogue"""
     __tablename__ = 'user'
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
     email = Column(String(250), nullable=False)
     picture = Column(String(250))
-    
+
+
 class Genre(Base):
     """Genres of movies like comedy, horror etc."""
     __tablename__ = 'genre'
-    
-    id = Column(Integer, primary_key = True)
-    name = Column(String(250), nullable = False, unique = True)
-    description = Column(String(500), nullable = False)
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False, unique=True)
+    description = Column(String(500), nullable=False)
     poster = Column(String(250))
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
-    
+
     @property
     def serializable(self):
         """Returns object in serializable format"""
@@ -39,12 +41,13 @@ class Genre(Base):
             "id": self.id,
         }
 
+
 class Movie(Base):
     """Movie items belonging to different genres"""
     __tablename__ = 'movie'
-    
-    id = Column(Integer, primary_key = True)
-    name = Column(String(250), nullable = False)
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False)
     storyline = Column(String(500))
     poster = Column(String(250))
     trailer_url = Column(String(250))
@@ -52,7 +55,7 @@ class Movie(Base):
     genre = relationship(Genre)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
-    
+
     @property
     def serializable(self):
         """Returns object in serializable format"""
@@ -66,5 +69,3 @@ class Movie(Base):
 
 engine = create_engine('sqlite:///genremoviewithusers.db')
 Base.metadata.create_all(engine)
-
-
