@@ -8,15 +8,15 @@
 			<!-- If user id matches with genre creator id show Edit/Delete and Add options -->
 			{% if user and user.id == genre.user_id %}
 			<a href="{{url_for('edit_genre', genre_id=genre.id, user_id=user.id)}}">
-			    <button class="btn waves-effect waves-light indigo darken-4 capitalize" type="submit" name="action">Edit&nbsp;<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+			    <button class="btn waves-effect waves-light indigo darken-4 capitalize" type="submit" name="action">Edit List&nbsp;<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 				</button>
 			</a>
 			<a href="{{url_for('delete_genre', genre_id=genre.id, user_id=user.id)}}">
-			    <button class="btn waves-effect waves-light red darken-4 capitalize" type="submit" name="action">Delete&nbsp;<i class="fa fa-trash-o" aria-hidden="true"></i>
+			    <button class="btn waves-effect waves-light red darken-4 capitalize" type="submit" name="action">Delete List&nbsp;<i class="fa fa-trash-o" aria-hidden="true"></i>
 				</button>
 			</a>
 			<a href="{{url_for('create_movie', genre_id=genre.id, user_id=user.id)}}">
-			    <button class="btn waves-effect waves-light green darken-1 capitalize" type="submit" name="action">Add&nbsp;<i class="fa fa-plus" aria-hidden="true"></i>
+			    <button class="btn waves-effect waves-light green darken-1 capitalize" type="submit" name="action">Add Movie&nbsp;<i class="fa fa-plus" aria-hidden="true"></i>
 				</button>
 			</a>
 
@@ -35,9 +35,15 @@
 		{% for movie in movies %}
 			<div class="col s12 m3 card">
 				<div class="card-image">
+					{% if movie.poster %}
 					<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}">
 					<img src="/static/img/{{movie.poster}}" alt="{{movie.name}}" class="responsive-img">
 					</a>
+					{% else %}
+					<a href="{{url_for('show_movie_details', genre_id=genre.id, movie_id=movie.id)}}">
+					<img src="http://placehold.it/400x600" alt="{{movie.name}}" class="responsive-img">
+					</a>
+					{% endif %}
 				</div>
 				<div class="card-content">
 					<p class="block-with-text">{{movie.storyline}}</p>

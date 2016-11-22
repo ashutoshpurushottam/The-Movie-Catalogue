@@ -204,15 +204,17 @@ def delete_genre(genre_id, user_id):
                                       movie.poster)
                     try:
                         os.remove(path)
-                    except:
-                        print("Exception trying to removing movie poster of")
+                    except e:
+                        app.logger.error(
+                            "Exception trying to removing movie poster: %s", (e))
             # delete poster of the genre
             if genre.poster:
                 path = "%s/%s" % (app.config['UPLOAD_FOLDER'], genre.poster)
                 try:
                     os.remove(path)
-                except:
-                    print("Can not delete poster of the genre")
+                except e:
+                    app.logger.error(
+                        "Can not delete poster of the genre: %s", (e))
 
             session.delete(genre)
             session.commit()
@@ -291,8 +293,9 @@ def edit_movie(genre_id, movie_id):
                                       movie.poster)
                     try:
                         os.remove(path)
-                    except:
-                        print("Exception in trying to remove movie poster of")
+                    except e:
+                        app.logger.error(
+                            "Exception in trying to remove movie poster %s", (e))
                 # update poster
                 movie.poster = filename
 
@@ -315,20 +318,13 @@ def show_movie_details(genre_id, movie_id):
     movie = session.query(Movie).filter_by(id=movie_id).one()
     genre = session.query(Genre).filter_by(id=genre_id).one()
     youtube_url = ""
-    try:
+    if movie.trailer_url.startswith("https://youtu.be/"):
         append = movie.trailer_url.split(".be/")[1]
         youtube_url = "https://www.youtube.com/embed/" + append
-        return render_template("movie_details.html",
-                               movie=movie,
-                               url=youtube_url,
-                               user=user,
-                               genre_id=genre_id)
-    except:
-        print("No valid youtube URL")
-        return render_template("movie_details.html",
-                               movie=movie, url="",
-                               genre_id=genre_id,
-                               user=user)
+    elif movie.trailer_url.startswith("https://www.youtube.com/watch?v="):
+        append = movie.trailer_url.split("?v=")[1]
+        youtube_url = "https://www.youtube.com/embed/" + append
+    return render_template("movie_details.html", movie=movie, url=youtube_url, user=user, genre_id=genre_id)
 
 
 # delete movie page
@@ -352,8 +348,9 @@ def delete_movie(genre_id, movie_id):
                 path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
                 try:
                     os.remove(path)
-                except:
-                    print("Exception trying to removie movie poster of")
+                except e:
+                    app.logger.error(
+                        "Exception trying to removie movie poster: %s", (e))
             session.delete(movie)
             session.commit()
             flash("The movie '%s' has been deleted" % movie.name)
@@ -380,15 +377,14 @@ def unauthorized_error(e):
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
-    user = get_user_from_session(login_session)
-    app.logger.error('Unhandled Exception: %s', (e))
+    app.logger.error("Unhandled exception %s", (e))
     if isinstance(e, IntegrityError):
         error = "Duplicate Entry Tried."
     else:
         error = "Some server error occured."
     session.rollback()
     Session.remove()
-    return render_template('unhandled.html', error=error, user=user), 500
+    return render_template('unhandled.html', error=error), 500
 
 
 # login page
@@ -492,7 +488,8 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 200px; height: 200px;border-radius: 100px;-webkit-border-radius: 100px;-moz-border-radius: 100px;"> '
+    output += ' " style = "width: 200px; height: 200px;border-radius: 100px;\
+    -webkit-border-radius: 100px;-moz-border-radius: 100px;"> '
     flash("You are now logged in as %s" % login_session['username'])
     print "done!"
     return output
