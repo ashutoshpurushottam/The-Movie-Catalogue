@@ -377,7 +377,7 @@ def unauthorized_error(e):
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
-    app.logger.error("Unhandled exception %s", (e))
+    app.logger.error("Unhandled exception")
     if isinstance(e, IntegrityError):
         error = "Duplicate Entry Tried."
     else:
