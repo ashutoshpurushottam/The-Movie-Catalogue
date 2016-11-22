@@ -1,15 +1,19 @@
-/* Custom styling for the catalogue */
+/* Custom styling for the movie catalogue */
 body {
     font-family: "Source Sans Pro", sans-serif;
     font-size: 1.2rem;
     color: #330000;
 }
 
+p.red-text {
+    color: #E52D2D;
+}
+
 .grid-item { 
     width: 33.333%; 
 }
 
-
+/*CSS for up arrow*/
 a.back-to-top {
 	display: none;
 	width: 60px;
@@ -25,21 +29,25 @@ a.back-to-top {
 	border-radius: 30px;
 }
 
+/*Styling of title*/
 .brand-logo-text {
 	font-size: 1.2rem;
 	font-family: 'Courgette', cursive;
 	text-align: center;	
 }
 
+/*Welcome text style*/
 .welcome-text {
 	font-size: 1.6rem;
 }
 
+/*Home page title*/
 .main-page-title {
 	font-size: 2.2rem;
 	color: #330000;
 }
 
+/*Title of pages*/
 .page-title {
 	font-size: 2.0rem;
 	color: #330000;
@@ -49,6 +57,7 @@ a.back-to-top {
     text-transform: capitalize;
 }
 
+/*Ensure consistent color of links*/
 .page-link {
 	color: #660066;
 }

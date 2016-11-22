@@ -29,7 +29,7 @@
 	<div class = "row">
 		{% for genre in genres %}
 			<div class="card">
-				<div class="panel col m4 s12 card">
+				<div class="panel col l4 m6 s12 card">
 					{% if genre.poster %}
 					<!-- Make image link clickable -->
 					<a href="{{ url_for('show_movies_genre', genre_id=genre.id) }}">
@@ -41,8 +41,10 @@
 					{% else %}
 					<div class="card-image">
 						<!-- Show placeholder image if there is no poster url -->
+					<a href="{{ url_for('show_movies_genre', genre_id=genre.id) }}">
 						<img class="responsive-img modal-trigger" src="http://placehold.it/400x600" 
 						alt="{{genre.name}}" title="{{genre.description}}">
+					</a>
 					</div>
 					{% endif %}
 					<div class="card-content center-align capitalize">

@@ -1,3 +1,9 @@
+"""
+Code to automatically upload some genres/lists and movies to the database. 
+The posters are not fetched as the project exceeded expectations requires
+image CRUD operations.
+"""
+
 import requests
 import tmdbsimple as tmdb
 from sqlalchemy import create_engine
@@ -40,7 +46,6 @@ action = Genre(
     name="action",
     description="A film genre in which the protagonist or protagonists end up in a series of challenges that" 
     "typically include violence, close combat, physical feats and frantic chases",
-    poster_url="https://image.tmdb.org/t/p/original/yhaOQ7xXw0PLHLvg1w0M9zlPdg6.jpg",
     user_id=1)
 
 session.add(action)
@@ -51,7 +56,6 @@ romance = Genre(
     description="A film genre that focus on passion, emotion, and the affectionate romantic involvement of the"
     " main characters and the journey that their genuinely strong, true and pure romantic love takes them"
     " through dating, courtship or marriage.",
-    poster_url="https://image.tmdb.org/t/p/original/kHXEpyfl6zqn8a6YuozZUujufXf.jpg",
     user_id=1)
 
 session.add(romance)
@@ -63,7 +67,6 @@ animation = Genre(
     " photographed frame by frame (stop-frame cinematography). Usually, each frame differs slightly from"
     " the one preceding it, giving the illusion of movement when frames are projected in rapid succession"
     " at 24 frames per second.",
-    poster_url="https://image.tmdb.org/t/p/original/eHi3Nbgh6Cs2KiIyEMF4Ig4CdjX.jpg",
     user_id=1)
 
 session.add(animation)
@@ -74,7 +77,6 @@ comedy = Genre(
     description="Comedy is a genre of film in which the main emphasis is on humour. These films are designed"
     " to make the audience laugh through amusement and most often work by exaggerating characteristics for"
     " humorous effect.",
-    poster_url="https://image.tmdb.org/t/p/original/eshEkiG7NmU4ekA8CtpIdYiYufZ.jpg",
     user_id=1)
 
 session.add(comedy)
@@ -85,7 +87,6 @@ horror = Genre(
     description="Horror Films are unsettling films designed to frighten and panic, cause dread and alarm,"
     " and to invoke our hidden worst fears, often in a terrifying, shocking finale, while captivating and"
     " entertaining us at the same time in a cathartic experience.",
-    poster_url="https://image.tmdb.org/t/p/original/xYGkdhOEVoFrLNUotuTXemtQAWd.jpg",
     user_id=1)
 
 session.add(horror)
@@ -95,7 +96,6 @@ fantasy = Genre(
     name="fantasy",
     description="Fantasy films are films that belong to the fantasy genre with fantastic themes, usually"
     " involving magic, supernatural events, mythology, folklore, or exotic fantasy worlds.",
-    poster_url="https://image.tmdb.org/t/p/original/AgApctRBSSQQ6SRCC1sxcgby8Gf.jpg",
     user_id=1)
 
 session.add(fantasy)
@@ -197,7 +197,6 @@ for id in get_favorite_movies_id():
     movie = Movie(
         name = movie_title,
         storyline = movie_overview,
-        poster_url = movie_poster_url,
         trailer_url = movie_trailer_url,
         genre = movie_genre,
         user_id = 1

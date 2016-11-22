@@ -5,6 +5,7 @@
     <div class="col s10 offset-s1 card-panel">
         <div class="col s12">
             <h2 class="page-title capitalize center-align">{{movie.name}}</h2>
+            <!-- Delete movie form -->
             <form method="post">
                 <div class="row">
                     <div class="col s6 center-align offset-s3">
@@ -23,10 +24,8 @@
                     </div>
                 </div>
             </form>
+            <!-- End delete form -->
         </div>
-    </div>
-    <div class="col s3" id="image-div" hidden="hidden">
-        <p>Preview:</p><img id="preview-image" width="100%">
     </div>
 </div>
 {% endblock %}

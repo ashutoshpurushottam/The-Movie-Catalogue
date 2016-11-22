@@ -5,7 +5,6 @@
     <!--Import Google Icon Font-->
     <link href='https://fonts.googleapis.com/css?family=Courgette' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet">
 	<!-- Import font awesome -->
 	<script src="https://use.fontawesome.com/4bbbbbf1a5.js"></script>
 	<!-- Materialize CSS -->
@@ -17,12 +16,14 @@
 </head>
 <body>
     <header>
+        <!-- Navigation bar -->
         <nav class="purple darken-3" role="navigation">
             <div class="nav-wrapper container">
                 <span href="#" class="brand-logo brand-logo-text hide-on-med-and-down">
                     The Movie Catalogue<i class="fa fa-video-camera" aria-hidden="true"></i>
                </span>
                 <ul class="right valign-wrapper">
+                    <!-- Logged in user -->
                     {% if user %}
                     <li><a href="/">Home &nbsp;<i class="fa fa-home" aria-hidden="true"></i></a>
                     </li>
@@ -30,11 +31,12 @@
                     </li>
 					<li>
 						<a href="#!">
-							 <img src="{{user.picture}}" alt="" class="circle responsive-img valign hide-on-small-only"
-                             width="36">
+							 <img src="{{user.picture}}" alt="" 
+                             class="circle responsive-img valign hide-on-small-only" width="36">
 						</a>
 					</li>
                     {% else %}
+                    <!-- Not logged in -->
                     <li><a href="/">Home &nbsp;<i class="fa fa-home" aria-hidden="true"></i></a>
                     </li>
                     <li><a href="/login">Login &nbsp;<i class="fa fa-sign-in" aria-hidden="true"></i></a>
@@ -48,9 +50,8 @@
         <!-- Load the script so that materialize work for the toast dialogs -->
         <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
         <script src="/static/js/materialize.min.js"></script>
-
-
         <div id="messageBox">
+            <!-- Show toast message for flash -->
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     <!-- Show flash message as a toast for 4 seconds -->
@@ -69,7 +70,8 @@
 			
 		</div>
 	</main>
-    <!-- Load custom script -->
+    <!-- Used for stacking cards well as much as possible -->
     <script src="https://unpkg.com/masonry-layout@4.1/dist/masonry.pkgd.min.js"></script>
+    <!-- Load custom script -->
     <script src="/static/js/init.js"></script>
 </body>

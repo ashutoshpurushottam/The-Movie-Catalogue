@@ -340,16 +340,15 @@ def delete_movie(genre_id, movie_id):
 
 @app.errorhandler(413)
 def upload_size_error(e):
-    """Catches 413 error from photo size uploa    
-    Input:
-        e: Error object
-    Returns:
-        413.html
-    """
+    """Catches 413 error from photo size upload"""
     user = get_user_from_session(login_session)
-
     return render_template('413.html', user=user), 413
 
+@app.errorhandler(401)
+def unauthorized_error(e):
+    """Catches 401 error from unauthorized success"""
+    user = get_user_from_session(login_session)
+    return render_template('401.html', user=user), 413
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
