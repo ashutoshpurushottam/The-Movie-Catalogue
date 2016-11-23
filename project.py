@@ -5,6 +5,7 @@ import random
 import string
 import json
 import requests
+import re
 
 from functools import wraps, update_wrapper
 from datetime import datetime
@@ -132,6 +133,10 @@ def create_new_genre(user_id):
         pic_file = request.files['poster']
         if pic_file and permitted_file(pic_file.filename):
             filename = secure_filename(pic_file.filename)
+            # renaming pic file name to avoid any collision
+            filename = strip_string(
+                new_genre.name) + filename.split(".")[0] + "-genre." + filename.split(".")[1]
+            # save the file to the img folder
             pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             new_genre.poster = filename
 
@@ -152,6 +157,7 @@ def edit_genre(genre_id, user_id):
     """edit genre details"""
     user = get_user_from_session(login_session)
     genre = session.query(Genre).filter_by(id=genre_id).one()
+
     # only genre creator can edit its description
     if user and user.id == genre.user_id:
         if request.method == 'POST':
@@ -163,6 +169,9 @@ def edit_genre(genre_id, user_id):
 
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
+                # rename file to prevent collision
+                filename = strip_string(
+                    genre.name) + filename.split(".")[0] + "-genre." + filename.split(".")[1]
                 pic_file.save(os.path.join(
                     app.config['UPLOAD_FOLDER'], filename))
                 # remove older poster
@@ -218,7 +227,7 @@ def delete_genre(genre_id, user_id):
 
             session.delete(genre)
             session.commit()
-            flash("The list '%s' has been deleted" % genre.name)
+            flash("The list '%s' has been deleted." % genre.name)
             return redirect('/')
         else:
             return render_template("delete_genre.html", user=user, genre=genre)
@@ -248,6 +257,9 @@ def create_movie(genre_id, user_id):
 
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
+                # rename pic to prevent collision
+                filename = strip_string(
+                    genre.name + new_movie.name) + filename.split(".")[0] + "-movie." + filename.split(".")[1]
                 pic_file.save(os.path.join(
                     app.config['UPLOAD_FOLDER'], filename))
                 new_movie.poster = filename
@@ -285,6 +297,8 @@ def edit_movie(genre_id, movie_id):
 
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
+                filename = strip_string(
+                    genre.name + movie.name) + filename.split(".")[0] + "-movie." + filename.split(".")[1]
                 pic_file.save(os.path.join(
                     app.config['UPLOAD_FOLDER'], filename))
                 # remove older poster
@@ -378,7 +392,7 @@ def unauthorized_error(e):
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
-    app.logger.error("Unhandled exception")
+    app.logger.error("Unhandled exception %s", (e))
     if isinstance(e, IntegrityError):
         error = "Duplicate Entry Tried."
     else:
@@ -558,6 +572,16 @@ def index_json():
         items = session.query(Movie).filter_by(genre_id=genre.id).all()
         movies[-1]['movies'] = [i.serializable for i in items]
     return jsonify(Lists=movies)
+
+
+def strip_string(s):
+    """
+    strips all non-alphanumeric characters form a string 
+    and returns the remaining string
+    """
+    pattern = re.compile('\W')
+    stripped = re.sub(pattern, '', s)
+    return stripped
 
 
 def permitted_file(filename):
