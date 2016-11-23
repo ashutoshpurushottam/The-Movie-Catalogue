@@ -28,7 +28,7 @@ from oauth2client.client import FlowExchangeError
 
 
 # Configuration for picture uploads
-UPLOAD_FOLDER = '/vagrant/the-movie-catalogue/static/img'
+UPLOAD_FOLDER = '/vagrant/The-Movie-Catalogue/static/img'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024  # Max Size: 4 MB
 
@@ -346,6 +346,7 @@ def delete_movie(genre_id, movie_id):
             # remove old movie poster
             if movie.poster:
                 path = "%s/%s" % (app.config['UPLOAD_FOLDER'], movie.poster)
+                app.logger.error("Path: %s", (path))
                 try:
                     os.remove(path)
                 except e:
@@ -525,107 +526,6 @@ def gdisconnect():
         return response
 
 
-@app.route('/fbconnect', methods=['POST'])
-def fbconnect():
-    """
-    Handles authentication and authorization for facebook
-    authentication.
-    """
-    # state token validation
-    if request.args.get('state') != login_session['state']:
-        response = make_response(json.dumps('Invalid state parameter'
-                                            ), 401)
-        response.headers['content-type'] = 'application/json'
-        return response
-    access_token = request.data
-
-    # exchange client token for server token
-    app_id = json.loads(open('fb_client_secrets.json', 'r').read())['web'][
-        'app_id']
-    app_secret = json.loads(open('fb_client_secrets.json', 'r').read())['web'][
-        'app_secret']
-    url = ('https://graph.facebook.com/oauth/access_token?grant_type='
-           'fb_exchange_token&client_id=%s&client_secret=%s&'
-           'fb_exchange_token=%s'
-           % (app_id, app_secret, access_token))
-    http_ = httplib2.Http()
-    result = http_.request(url, 'GET')[1]
-
-    # use token to get info from fb api
-    # userinfo_url = 'https://graph.facebook.com/v2.4/me'
-
-    # Strip expire tag from access token
-    token = result.split('&')[0]
-    # The token must be stored in the login_session in order to properly
-    # logout, let's strip out the information before the equals sign in
-    # our token
-    stored_token = token.split("=")[1]
-    login_session['access_token'] = stored_token
-
-    url = 'https://graph.facebook.com/v2.4/me?%s&fields=name,id,email' % token
-    http_ = httplib2.Http()
-    result = http_.request(url, 'GET')[1]
-    print "url sent for API access: %s" % url
-    print "API JSON result: %s" % result
-
-    data = json.loads(result)
-
-    # populate login session
-    login_session['username'] = data['name']
-    print login_session['username']
-    if 'email' in data:
-        login_session['email'] = data['email']
-    else:
-        # it is possible for the user to not to have any email. So we will
-        # set username@facebook.com string as the email (guaranteed to be
-        # unique)
-        login_session['email'] = data['name'] + '@facebook.com'
-    login_session['facebook_id'] = data['id']
-    login_session['provider'] = 'facebook'
-    # get user profile pic
-    url = ('https://graph.facebook.com/v2.4/me/picture?%s'
-           '&redirect=0&height=200&width=200' % token)
-    http_ = httplib2.Http()
-    result = http_.request(url, 'GET')[1]
-    data = json.loads(result)
-    login_session['picture'] = data['data']['url']
-
-    # if the user exists get their user id otherwise create new user
-    user_id = get_user_id(login_session['email'])
-    if not user_id:
-        user_id = create_user(login_session)
-    # store the user id in the login session
-    login_session['user_id'] = user_id
-    # display welcome message for user
-    output = ''
-    output += '<h1>Welcome, '
-    output += login_session['username']
-    output += '!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += ' " style = "width: 200px;'
-    output += ' height: 200px;'
-    output += 'border-radius: 100px;'
-    output += '-webkit-border-radius: 100px;'
-    output += '-moz-border-radius: 100px;"> '
-    print "done!"
-    print "email in fb:", login_session['email']
-    flash("You are now logged in as %s" % login_session['username'])
-    return output
-
-
-def fbdisconnect():
-    """ Log out of facebook """
-    facebook_id = login_session['facebook_id']
-    access_token = login_session['access_token']
-    url = ('https://graph.facebook.com/%s/'
-           'permissions?access_token=%s'
-           % (facebook_id, access_token))
-    http_ = httplib2.Http()
-    result = http_.request(url, 'DELETE')[1]
-    return 'You have logged out.'
-
-
 @app.route('/logout')
 def disconnect():
     """ Handles the disconnection of all accounts """
@@ -633,9 +533,9 @@ def disconnect():
         if login_session['provider'] == 'google':
             gdisconnect()
             del login_session['gplus_id']
-        if login_session['provider'] == 'facebook':
-            fbdisconnect()
-            del login_session['facebook_id']
+        # if login_session['provider'] == 'facebook':
+        #     fbdisconnect()
+        #     del login_session['facebook_id']
         del login_session['access_token']
         del login_session['username']
         del login_session['email']

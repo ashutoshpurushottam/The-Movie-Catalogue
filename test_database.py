@@ -38,4 +38,5 @@ def query_all_movies():
               (movie.name, movie.trailer_url, movie.genre, movie.user_id))
         print("-------------------------------------------------")
 
-query_all_movies()
+#query_all_movies()
+query_all_genres()
