@@ -41,6 +41,7 @@ app.config['MAX_CONTENT_LENGTH'] = UPLOAD_FILESIZE_LIMIT
 app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
 csrf = SeaSurf(app)
 
+
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 
@@ -547,9 +548,6 @@ def disconnect():
         if login_session['provider'] == 'google':
             gdisconnect()
             del login_session['gplus_id']
-        # if login_session['provider'] == 'facebook':
-        #     fbdisconnect()
-        #     del login_session['facebook_id']
         del login_session['access_token']
         del login_session['username']
         del login_session['email']

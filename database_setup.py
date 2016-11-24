@@ -47,7 +47,7 @@ class Movie(Base):
     __tablename__ = 'movie'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False, unique=True)
+    name = Column(String(250), nullable=False)
     storyline = Column(String(500))
     poster = Column(String(250))
     trailer_url = Column(String(250))

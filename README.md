@@ -39,6 +39,11 @@ http://localhost:5000/movies/json
 - Stacking movie or list cards : [Masonry JS Library][9]
 - Scroll up button : http://html-tuts.com/back-to-top-button-jquery/
 
+### TODO's ###
+- Flask database migration code.
+- Checks on form inputs. 
+- Better stacking of movie cards.
+
 [1]: https://www.python.org/downloads/
 [2]: http://flask.pocoo.org
 [3]: http://www.sqlalchemy.org
