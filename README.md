@@ -1,7 +1,7 @@
 # The Movie Catalogue #
 
-The movie catalog application. It demonstrates CRUD functionality and also third party 
-authentication/authorization (Facebook & Google) integrations for login and user permissions.
+The movie catalogue application. It demonstrates CRUD functionality and also third party 
+authentication/authorization (Google) integrations for login and user permissions.
 The web application uses SeaSurf to protect against CSRF attacks and provides CRUD functionality
 on poster images of lists or movies. 
 
@@ -9,7 +9,7 @@ on poster images of lists or movies.
 description and representative poster.
 - Users can create movies inside their own lists of movies. Each movie has its name,
 description, poster and trailer URL. 
-- Non-logged in users may view all the lists and movies in the cataloges. They can also 
+- Non-logged in users may view all the lists and movies in the catalogues. They can also 
 access JSON API endpoint.
 - Logged in users can edit/delete their own lists or movies.
 - Customized pages for Unauthorized Access or Server Exceptions. 
@@ -43,6 +43,9 @@ http://localhost:5000/movies/json
 - Flask database migration code.
 - Checks on form inputs. 
 - Better stacking of movie cards.
+
+### Info ###
+Mozilla Persona login was not attempted as it is being removed on November 30, 2016.
 
 [1]: https://www.python.org/downloads/
 [2]: http://flask.pocoo.org
