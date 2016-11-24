@@ -46,7 +46,7 @@ put them in a secret.py file with variable names username, password and api_key 
 included in the repository. You can login and add your own lists and movies to the db. 
 - Run the app: `python project.py`
 - Navigate to the app via a web browser: http://localhost:5000
-
+- To test the database edit edit test_database.py as per your requirement and run: `python test_database.py`
 
 ### Credits ###
 - Front-end Framework: [Materialize Framework][6]

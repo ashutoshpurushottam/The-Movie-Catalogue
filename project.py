@@ -609,8 +609,6 @@ def index_json_genre(genre_id):
     return jsonify(Movies=lst)
 
 
-
-
 def strip_string(s):
     """
     strips all non-alphanumeric characters form a string
