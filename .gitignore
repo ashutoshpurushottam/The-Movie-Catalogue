@@ -5,6 +5,7 @@ client_secrets.json
 fb_client_secrets.json
 # C extensions
 *.so
+.DS_Store
 secret.py
 notes.txt
 # Distribution / packaging

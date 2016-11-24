@@ -14,20 +14,24 @@ access JSON API endpoint.
 - Logged in users can edit/delete their own lists or movies.
 - Customized pages for Unauthorized Access or Server Exceptions. 
 
-## Dependencies ##
+### Dependencies ###
 - [Python 2.7][1]
 - [Flask][2]
 - [SQLAlchemy][3]
 - [httplib2][4]
 - [SeaSurf][5]
 
-## Setting up OAuth2.0 ##
+### Setting up OAuth2.0 ###
 1. Sign up for a google account and set up a client id and secret. Visit: [http://console.developers.google.com](http://console.developers.google.com)
 2. The client id needs to be replaced in line 23 of the login.html with client id obtained above.
 
-## API Endpoints ##
-Aggregated movies data can be downloaded via API endpoints at the link http://localhost:5000/json or
+### API Endpoints ###
+- Aggregated movies data can be downloaded via API endpoints at the link http://localhost:5000/json or
 http://localhost:5000/movies/json
+- JSON endpoints for a single movie info are http://localhost:5000/json/movie/<int:movie_id> or
+http://localhost:5000/movies/json/movie/<int:movie_id>
+- JSON endpoints for a given list info are http://localhost:5000/json/genre/<int:genre_id> 
+or http://localhost:5000/json/movies/genre/<int:genre_id>
 
 
 ### Credits ###
@@ -39,15 +43,26 @@ http://localhost:5000/movies/json
 - Stacking movie or list cards : [Masonry JS Library][9]
 - Scroll up button : http://html-tuts.com/back-to-top-button-jquery/
 
+### Running project ###
+- Ensure you have the required software installed (see Requirements)
+- Clone the repo: git clone https://github.com/ashutoshpurushottam/The-Movie-Catalogue.git
+- Inside the repo in terminal navigate to the The-Movie-Catalogue directory
+- Set up the database: python database_setup.py
+- Populate the database: python populate_database.py 
+- For running the code populate_database.py you will need to create n account in [TMDB][8] website
+- You will need to create username, password and obtain api_key from the TMDB website and 
+put them in a secret.py file with variable names username, password and api_key respectively. 
+- If you want you can use skip the above two steps and use the database genremoviewithusers.db 
+included in the repository. You can login and add your own lists and movies to the db. 
+- Run the app: python project.py
+- Navigate to the app via a web browser: http://localhost:5000
+
 ### TODO's ###
 - Flask database migration code.
 - Checks on form inputs. 
 - Better stacking of movie cards.
 
 ### Info ###
-- To run populate_database.py file you will need to create username, password and obtain
-api_key from the TMDB website and put them in a secret.py file with variable names username,
-password and api_key respectively. 
 - Mozilla Persona login was not attempted as it is being removed on November 30, 2016.
 
 [1]: https://www.python.org/downloads/
