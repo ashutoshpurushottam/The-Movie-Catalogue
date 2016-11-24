@@ -33,6 +33,20 @@ http://localhost:5000/movies/json/movie/<int:movie_id>
 - JSON endpoints for a given list info are http://localhost:5000/json/genre/<int:genre_id> 
 or http://localhost:5000/json/movies/genre/<int:genre_id>
 
+### Running project ###
+- Ensure you have the required software installed (see Requirements)
+- Clone the repo: `git clone https://github.com/ashutoshpurushottam/The-Movie-Catalogue.git`
+- Inside the repo in terminal navigate to the The-Movie-Catalogue directory
+- Set up the database: `python database_setup.py`
+- Populate the database: `python populate_database.py` 
+- For running the code populate_database.py you will need to create an account in [TMDB][8] website
+- You will need to create username, password and obtain api_key from the TMDB website and 
+put them in a secret.py file with variable names username, password and api_key respectively. 
+- If you want you can use skip the above two steps and use the database genremoviewithusers.db 
+included in the repository. You can login and add your own lists and movies to the db. 
+- Run the app: `python project.py`
+- Navigate to the app via a web browser: http://localhost:5000
+
 
 ### Credits ###
 - Front-end Framework: [Materialize Framework][6]
@@ -43,19 +57,6 @@ or http://localhost:5000/json/movies/genre/<int:genre_id>
 - Stacking movie or list cards : [Masonry JS Library][9]
 - Scroll up button : http://html-tuts.com/back-to-top-button-jquery/
 
-### Running project ###
-- Ensure you have the required software installed (see Requirements)
-- Clone the repo: `git clone https://github.com/ashutoshpurushottam/The-Movie-Catalogue.git`
-- Inside the repo in terminal navigate to the The-Movie-Catalogue directory
-- Set up the database: `python database_setup.py`
-- Populate the database: `python populate_database.py` 
-- For running the code populate_database.py you will need to create n account in [TMDB][8] website
-- You will need to create username, password and obtain api_key from the TMDB website and 
-put them in a secret.py file with variable names username, password and api_key respectively. 
-- If you want you can use skip the above two steps and use the database genremoviewithusers.db 
-included in the repository. You can login and add your own lists and movies to the db. 
-- Run the app: `python project.py`
-- Navigate to the app via a web browser: http://localhost:5000
 
 ### TODO's ###
 - Flask database migration code.
