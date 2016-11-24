@@ -48,7 +48,7 @@ http://localhost:5000/movies/json
 - To run populate_database.py file you will need to create username, password and obtain
 api_key from the TMDB website and put them in a secret.py file with variable names username,
 password and api_key respectively. 
--Mozilla Persona login was not attempted as it is being removed on November 30, 2016.
+- Mozilla Persona login was not attempted as it is being removed on November 30, 2016.
 
 [1]: https://www.python.org/downloads/
 [2]: http://flask.pocoo.org
