@@ -11,7 +11,8 @@ from functools import wraps, update_wrapper
 from datetime import datetime
 from database_setup import Genre, Base, Movie, User
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import jsonify
 from flask import session as login_session
 from flask import make_response
 from flask import abort
@@ -29,7 +30,7 @@ from oauth2client.client import FlowExchangeError
 
 
 # Configuration for picture uploads
-UPLOAD_FOLDER = '/vagrant/The-Movie-Catalogue/static/img'
+UPLOAD_FOLDER = 'static/img'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 UPLOAD_FILESIZE_LIMIT = 4 * 1024 * 1024  # Max Size: 4 MB
 
@@ -58,14 +59,15 @@ def nocache(view):
     def no_cache(*args, **kwargs):
         """
         prevents caching of client browser
-        decorator to be used where controlling flash messages is required 
+        decorator to be used where controlling flash messages is required
         Input: View
         Returns: wrapper over the view for cache control
         """
         response = make_response(view(*args, **kwargs))
         response.headers['Last-Modified'] = datetime.now()
         response.headers[
-            'Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+            'Cache-Control'] = 'no-store, no-cache, must-revalidate,\
+             post-check=0, pre-check=0, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'
         return response
@@ -116,7 +118,10 @@ def show_movies_genre(genre_id):
     movies = session.query(Movie).filter_by(
         genre_id=genre_id).order_by(func.random()).all()
     genre = session.query(Genre).filter_by(id=genre_id).one()
-    return render_template('genre_movies.html', movies=movies, genre=genre, user=user)
+    return render_template('genre_movies.html',
+                           movies=movies,
+                           genre=genre,
+                           user=user)
 
 # page for creating a new genre
 
@@ -136,7 +141,8 @@ def create_new_genre(user_id):
             filename = secure_filename(pic_file.filename)
             # renaming pic file name to avoid any collision
             filename = strip_string(
-                new_genre.name) + filename.split(".")[0] + "-genre." + filename.split(".")[1]
+                new_genre.name) +\
+                filename.split(".")[0] + "-genre." + filename.split(".")[1]
             # save the file to the img folder
             pic_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             new_genre.poster = filename
@@ -152,7 +158,8 @@ def create_new_genre(user_id):
 # edit genre page
 
 
-@app.route('/genre/<int:genre_id>/<int:user_id>/edit/', methods=['GET', 'POST'])
+@app.route('/genre/<int:genre_id>/<int:user_id>/edit/',
+           methods=['GET', 'POST'])
 @login_required
 def edit_genre(genre_id, user_id):
     """edit genre details"""
@@ -172,7 +179,8 @@ def edit_genre(genre_id, user_id):
                 filename = secure_filename(pic_file.filename)
                 # rename file to prevent collision
                 filename = strip_string(
-                    genre.name) + filename.split(".")[0] + "-genre." + filename.split(".")[1]
+                    genre.name) + filename.split(".")[0] +\
+                    "-genre." + filename.split(".")[1]
                 pic_file.save(os.path.join(
                     app.config['UPLOAD_FOLDER'], filename))
                 # remove older poster
@@ -196,7 +204,8 @@ def edit_genre(genre_id, user_id):
 # delete genre page
 
 
-@app.route('/genre/<int:genre_id>/<int:user_id>/delete/', methods=['GET', 'POST'])
+@app.route('/genre/<int:genre_id>/<int:user_id>/delete/',
+           methods=['GET', 'POST'])
 @login_required
 def delete_genre(genre_id, user_id):
     """delete genre alongwith associated movies"""
@@ -260,7 +269,8 @@ def create_movie(genre_id, user_id):
                 filename = secure_filename(pic_file.filename)
                 # rename pic to prevent collision
                 filename = strip_string(
-                    genre.name + new_movie.name) + filename.split(".")[0] + "-movie." + filename.split(".")[1]
+                    genre.name + new_movie.name) +\
+                    filename.split(".")[0] + "-movie." + filename.split(".")[1]
                 pic_file.save(os.path.join(
                     app.config['UPLOAD_FOLDER'], filename))
                 new_movie.poster = filename
@@ -277,7 +287,8 @@ def create_movie(genre_id, user_id):
 # edit movie page
 
 
-@app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie', methods=['GET', 'POST'])
+@app.route('/genre/<int:genre_id>/<int:movie_id>/edit_movie',
+           methods=['GET', 'POST'])
 @login_required
 def edit_movie(genre_id, movie_id):
     """edit movie detail"""
@@ -299,7 +310,8 @@ def edit_movie(genre_id, movie_id):
             if pic_file and permitted_file(pic_file.filename):
                 filename = secure_filename(pic_file.filename)
                 filename = strip_string(
-                    genre.name + movie.name) + filename.split(".")[0] + "-movie." + filename.split(".")[1]
+                    genre.name + movie.name) +\
+                    filename.split(".")[0] + "-movie." + filename.split(".")[1]
                 pic_file.save(os.path.join(
                     app.config['UPLOAD_FOLDER'], filename))
                 # remove older poster
@@ -310,7 +322,8 @@ def edit_movie(genre_id, movie_id):
                         os.remove(path)
                     except e:
                         app.logger.error(
-                            "Exception in trying to remove movie poster %s", (e))
+                            "Exception in trying to remove movie poster %s",
+                            (e))
                 # update poster
                 movie.poster = filename
 
@@ -339,11 +352,16 @@ def show_movie_details(genre_id, movie_id):
     elif movie.trailer_url.startswith("https://www.youtube.com/watch?v="):
         append = movie.trailer_url.split("?v=")[1]
         youtube_url = "https://www.youtube.com/embed/" + append
-    return render_template("movie_details.html", movie=movie, url=youtube_url, user=user, genre_id=genre_id)
+    return render_template("movie_details.html",
+                           movie=movie,
+                           url=youtube_url,
+                           user=user,
+                           genre_id=genre_id)
 
 
 # delete movie page
-@app.route('/genre/<int:genre_id>/<int:movie_id>/delete_movie', methods=['GET', 'POST'])
+@app.route('/genre/<int:genre_id>/<int:movie_id>/delete_movie',
+           methods=['GET', 'POST'])
 @login_required
 def delete_movie(genre_id, movie_id):
     """
@@ -468,8 +486,8 @@ def gconnect():
     stored_credentials = login_session.get('credentials')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_credentials is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(
+            json.dumps('Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -562,7 +580,7 @@ def disconnect():
 @app.route('/json')
 @app.route('/movies/json')
 def index_json():
-    """Route for JSON endpoint."""
+    """Route for JSON endpoint. Return all the movies"""
     genres = session.query(Genre).all()
     movies = []
     for genre in genres:
@@ -572,9 +590,30 @@ def index_json():
     return jsonify(Lists=movies)
 
 
+@app.route('/json/movie/<int:movie_id>')
+@app.route('/movies/json/movie/<int:movie_id>')
+def index_json_movie(movie_id):
+    """Route for JSON endpoint. Return a movie info for id"""
+    movie = session.query(Movie).filter_by(id=movie_id).one()
+    return jsonify(Movie=movie.serializable)
+
+@app.route('/json/genre/<int:genre_id>')
+@app.route('/json/movies/genre/<int:genre_id>')
+def index_json_genre(genre_id):
+    """Route for JSON endpoint. Return movies of a genre"""
+    genre = session.query(Genre).filter_by(id=genre_id).one()
+    movies = session.query(Movie).filter_by(genre_id=genre_id).all()
+    lst = []
+    lst.append(genre.serializable)
+    lst[-1]['movies'] = [i.serializable for i in movies]
+    return jsonify(Movies=lst)
+
+
+
+
 def strip_string(s):
     """
-    strips all non-alphanumeric characters form a string 
+    strips all non-alphanumeric characters form a string
     and returns the remaining string
     """
     pattern = re.compile('\W')

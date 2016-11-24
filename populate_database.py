@@ -1,5 +1,5 @@
 """
-Code to automatically upload some genres/lists and movies to the database. 
+Code to automatically upload some genres/lists and movies to the database.
 The posters are not fetched as the project exceeded expectations requires
 image CRUD operations.
 """
@@ -36,7 +36,8 @@ session = DBSession()
 user = User(
     name="Ashutosh Purushottam",
     email="sonu.puru1807@gmail.com",
-    picture="https://lh4.googleusercontent.com/-in2C7dQwUEQ/AAAAAAAAAAI/AAAAAAAADEU/-YXW7m2A1uo/photo.jpg"
+    picture="https://lh4.googleusercontent.com/-in2C7dQwUEQ/AAAAAAAAAAI"
+    + "/AAAAAAAADEU/-YXW7m2A1uo/photo.jpg"
 )
 session.add(user)
 session.commit()
@@ -44,8 +45,9 @@ session.commit()
 # Add genres
 action = Genre(
     name="action",
-    description="A film genre in which the protagonist or protagonists end up in a series of challenges that"
-    "typically include violence, close combat, physical feats and frantic chases",
+    description="A film genre in which the protagonist or protagonists"
+    " end up in a series of challenges that typically include violence, close"
+    " combat, physical feats and frantic chases",
     user_id=1)
 
 session.add(action)
@@ -53,8 +55,9 @@ session.commit()
 
 romance = Genre(
     name="romance",
-    description="A film genre that focus on passion, emotion, and the affectionate romantic involvement of the"
-    " main characters and the journey that their genuinely strong, true and pure romantic love takes them"
+    description="A film genre that focus on passion, emotion, and the"
+    " affectionate romantic involvement of the main characters and the journey"
+    " that their genuinely strong, true and pure romantic love takes them"
     " through dating, courtship or marriage.",
     user_id=1)
 
@@ -63,9 +66,11 @@ session.commit()
 
 animation = Genre(
     name="animation",
-    description="Animated Films are ones in which individual drawings, paintings, or illustrations are"
-    " photographed frame by frame (stop-frame cinematography). Usually, each frame differs slightly from"
-    " the one preceding it, giving the illusion of movement when frames are projected in rapid succession"
+    description="Animated Films are ones in which individual drawings,"
+    " paintings, or illustrations are photographed frame by frame"
+    " (stop-frame cinematography). Usually, each frame differs slightly from"
+    " the one preceding it, giving the illusion of movement when frames are"
+    " projected in rapid succession"
     " at 24 frames per second.",
     user_id=1)
 
@@ -74,8 +79,9 @@ session.commit()
 
 comedy = Genre(
     name="comedy",
-    description="Comedy is a genre of film in which the main emphasis is on humour. These films are designed"
-    " to make the audience laugh through amusement and most often work by exaggerating characteristics for"
+    description="Comedy is a genre of film in which the main emphasis is on"
+    " humour. These films are designed to make the audience laugh through"
+    " amusement and most often work by exaggerating characteristics for"
     " humorous effect.",
     user_id=1)
 
@@ -84,8 +90,9 @@ session.commit()
 
 horror = Genre(
     name="horror",
-    description="Horror Films are unsettling films designed to frighten and panic, cause dread and alarm,"
-    " and to invoke our hidden worst fears, often in a terrifying, shocking finale, while captivating and"
+    description="Horror Films are unsettling films designed to frighten and"
+    " panic, cause dread and alarm, and to invoke our hidden worst fears, often"
+    " in a terrifying, shocking finale, while captivating and"
     " entertaining us at the same time in a cathartic experience.",
     user_id=1)
 
@@ -94,8 +101,9 @@ session.commit()
 
 fantasy = Genre(
     name="fantasy",
-    description="Fantasy films are films that belong to the fantasy genre with fantastic themes, usually"
-    " involving magic, supernatural events, mythology, folklore, or exotic fantasy worlds.",
+    description="Fantasy films are films that belong to the fantasy genre with"
+    " fantastic themes, usually involving magic, supernatural events"
+    ", mythology, folklore, or exotic fantasy worlds.",
     user_id=1)
 
 session.add(fantasy)
@@ -106,7 +114,8 @@ def get_request_token():
     """
     gets request token for the user
     """
-    url_string = BASE_URL_SECURE_STRING + GET_TOKEN_METHOD + "?api_key=" + API_KEY
+    url_string = BASE_URL_SECURE_STRING + GET_TOKEN_METHOD +\
+        "?api_key=" + API_KEY
     r = requests.get(url_string)
     config = r.json()
     token = config['request_token']
@@ -160,9 +169,11 @@ def get_favorite_movies_id():
     get_favorite_movies_method = get_favorite_movies_method.format(id=user_id)
     movies_array = []
     for count in range(1, 3):
-        parameters = "?api_key=%s&session_id=%s&sort_by=created_at.asc&page=%s" % (
-            API_KEY, session_id, count)
-        url_string = BASE_URL_SECURE_STRING + get_favorite_movies_method + parameters
+        parameters = "?api_key=%s&session_id=%s&sort_by=created_at.asc&page=%s"\
+            % (
+                API_KEY, session_id, count)
+        url_string = BASE_URL_SECURE_STRING + get_favorite_movies_method +\
+            parameters
         r = requests.get(url_string)
         response_json = r.json()
         movies_array += response_json['results']
